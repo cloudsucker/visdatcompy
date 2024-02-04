@@ -95,12 +95,11 @@ def scan_directory(dataset_path: str) -> list[str]:
     try:
         for address, dirs, files in os.walk(dataset_path):
             for name in files:
-                images.append(os.path.join(address, name))
+                images.append((address, name))
     except Exception as e:
         color_print("fail", "fail", f"Error: {e}", "True")
 
     return images
-
 
 # ==================================================================================================================================
 
