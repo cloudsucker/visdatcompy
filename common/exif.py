@@ -3,7 +3,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 #from IPython.display import display
 import os.path
-
+import utils
 
 #Получение exif из файла
 def get_exif_data(image_path):
