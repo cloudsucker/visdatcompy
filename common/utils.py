@@ -53,7 +53,6 @@ def get_time(func) -> None:
         result = func(*args, **kwargs)
         end_time = time.time() - start_time
         color_print("log", "log", f"Время выполнения: {end_time}", True)
-        print("\n")
         return result
 
     return wrapper

@@ -97,7 +97,9 @@ def create_exif_dataframe(dataset_path: str, create_csv: bool) -> pd.DataFrame:
 if __name__ == "__main__":
     # Тестирование функций с измерением времени выполнения
     directory_path = "dataset"
+
     get_time(get_exif_data)(os.path.join(directory_path, "000.jpg"))
     get_time(get_exif_from_files)(directory_path)
+
     df = pd.DataFrame(get_time(create_exif_dataframe)(directory_path, True))
-    print(df)
+    print(f"\n{df}")

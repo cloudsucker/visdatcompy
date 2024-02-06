@@ -1,6 +1,6 @@
 import numpy as np
 from PIL import Image
-from utils import get_time
+from utils import get_time, color_print
 from sklearn.metrics import mean_squared_error as mse_sklearn
 from skimage.metrics import normalized_root_mse as nrmse_skimage
 from skimage.metrics import structural_similarity as ssim_skimage
@@ -185,28 +185,28 @@ if __name__ == "__main__":
 
     # Pixel to Pixel Comparison
     result_pix2pix = get_time(pix2pix)(image_path1, image_path2)
-    print(f"Pixel to Pixel Comparison: {result_pix2pix}")
+    color_print("status", "status", f"P2P Comparison: {result_pix2pix}", "True")
 
     # MSE
     result_mse = get_time(mse)(image_path1, image_path2)
-    print(f"MSE: {result_mse}")
+    color_print("status", "status", f"MSE: {result_mse}", "True")
 
     # NRMSE
     result_nrmse = get_time(nrmse)(image_path1, image_path2)
-    print(f"NRMSE: {result_nrmse}")
+    color_print("status", "status", f"NRMSE: {result_nrmse}", "True")
 
     # SSIM
     result_ssim = get_time(ssim)(image_path1, image_path2)
-    print(f"SSIM: {result_ssim}")
+    color_print("status", "status", f"SSIM: {result_ssim}", "True")
 
     # PSNR
     result_psnr = get_time(psnr)(image_path1, image_path2)
-    print(f"PSNR: {result_psnr}")
+    color_print("status", "status", f"PSNR: {result_psnr}", "True")
 
     # MAE
     result_mae = get_time(mae)(image_path1, image_path2)
-    print(f"MAE: {result_mae}")
+    color_print("status", "status", f"MAE: {result_mae}", "True")
 
     # NMI
     result_nmi = get_time(nmi)(image_path1, image_path2)
-    print(f"NMI: {result_nmi}")
+    color_print("status", "status", f"NMI: {result_nmi}", "True")

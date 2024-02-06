@@ -1,2 +1,4 @@
 dataset/
 static/logo.psd
+data/meta.csv
+common/__pycache__/
