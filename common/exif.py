@@ -34,7 +34,7 @@ def get_exif_data(image_path: str) -> dict[str, str]:
                 color_print("fail", "fail", "EXIF данные не найдены.", True)
                 return None
     except FileNotFoundError:
-        print("fail", "fail", "Указанный файл не найден.", True)
+        color_print("fail", "fail", "Указанный файл не найден.", True)
         return None
 
     return exif_dict
