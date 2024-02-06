@@ -1,5 +1,6 @@
 import numpy as np
 from PIL import Image
+from typing import Union, List
 from utils import get_time, color_print
 from sklearn.metrics import mean_squared_error as mse_sklearn
 from skimage.metrics import normalized_root_mse as nrmse_skimage
@@ -14,24 +15,33 @@ from skimage.metrics import normalized_mutual_information as nmi_skimage
 # ==================================================================================================================================
 
 
-def pix2pix(first_image_path: str, second_image_path: str) -> bool:
+def pix2pix(first_image_path: str, second_image: Union[str, List[str]]) -> bool:
     """
     Функция для сравнения двух изображений методом Pixel to Pixel.
 
     Вход:
     - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
+    - second_image (string or list of strings): путь ко второму изображению или список путей к изображениям
 
     Вывод:
     - image_equal (boolean): True, если изображения идентичны, иначе False
     """
 
-    resized_image1 = Image.open(first_image_path).resize((512, 512))
-    resized_image2 = Image.open(second_image_path).resize((512, 512))
-
-    are_equal = np.array_equal(np.array(resized_image1), np.array(resized_image2))
-
-    return are_equal
+    if isinstance(second_image, list):
+        for image_path in second_image:
+            resized_image1 = Image.open(first_image_path).resize((512, 512))
+            resized_image2 = Image.open(image_path).resize((512, 512))
+            if not np.array_equal(np.array(resized_image1), np.array(resized_image2)):
+                return False
+        return True
+    elif isinstance(second_image, str):
+        resized_image1 = Image.open(first_image_path).resize((512, 512))
+        resized_image2 = Image.open(second_image).resize((512, 512))
+        return np.array_equal(np.array(resized_image1), np.array(resized_image2))
+    else:
+        raise ValueError(
+            "Недопустимый ввод для второго изображения. Он должен быть либо строкой, либо списком строк."
+        )
 
 
 # ==================================================================================================================================
@@ -187,26 +197,26 @@ if __name__ == "__main__":
     result_pix2pix = get_time(pix2pix)(image_path1, image_path2)
     color_print("status", "status", f"P2P Comparison: {result_pix2pix}", "True")
 
-    # MSE
-    result_mse = get_time(mse)(image_path1, image_path2)
-    color_print("status", "status", f"MSE: {result_mse}", "True")
+    # # MSE
+    # result_mse = get_time(mse)(image_path1, image_path2)
+    # color_print("status", "status", f"MSE: {result_mse}", "True")
 
-    # NRMSE
-    result_nrmse = get_time(nrmse)(image_path1, image_path2)
-    color_print("status", "status", f"NRMSE: {result_nrmse}", "True")
+    # # NRMSE
+    # result_nrmse = get_time(nrmse)(image_path1, image_path2)
+    # color_print("status", "status", f"NRMSE: {result_nrmse}", "True")
 
-    # SSIM
-    result_ssim = get_time(ssim)(image_path1, image_path2)
-    color_print("status", "status", f"SSIM: {result_ssim}", "True")
+    # # SSIM
+    # result_ssim = get_time(ssim)(image_path1, image_path2)
+    # color_print("status", "status", f"SSIM: {result_ssim}", "True")
 
-    # PSNR
-    result_psnr = get_time(psnr)(image_path1, image_path2)
-    color_print("status", "status", f"PSNR: {result_psnr}", "True")
+    # # PSNR
+    # result_psnr = get_time(psnr)(image_path1, image_path2)
+    # color_print("status", "status", f"PSNR: {result_psnr}", "True")
 
-    # MAE
-    result_mae = get_time(mae)(image_path1, image_path2)
-    color_print("status", "status", f"MAE: {result_mae}", "True")
+    # # MAE
+    # result_mae = get_time(mae)(image_path1, image_path2)
+    # color_print("status", "status", f"MAE: {result_mae}", "True")
 
-    # NMI
-    result_nmi = get_time(nmi)(image_path1, image_path2)
-    color_print("status", "status", f"NMI: {result_nmi}", "True")
+    # # NMI
+    # result_nmi = get_time(nmi)(image_path1, image_path2)
+    # color_print("status", "status", f"NMI: {result_nmi}", "True")
