@@ -2,7 +2,7 @@ import os.path
 import pandas as pd
 from PIL import Image
 from PIL.ExifTags import TAGS
-from utils import scan_directory, color_print
+from utils import scan_directory, color_print, get_time
 
 # ==================================================================================================================================
 # |                                                               EXIF                                                             |
@@ -71,21 +71,33 @@ def get_exif_from_files(directory: str) -> list[str]:
 # ==================================================================================================================================
 
 
-def create_exif_dataframe(data_path) -> pd.DataFrame:
+def create_exif_dataframe(dataset_path: str, create_csv: bool) -> pd.DataFrame:
     """
     Создание датафрейма с метаданными EXIF изображений из указанной директории.
 
     Вход:
-    - dataPath (str): путь к директории с изображениями
+    - dataset_path (str): путь к директории с изображениями
 
     Вывод:
     - df (pd.DataFrame): датафрейм с метаданными EXIF изображений
     """
 
-    data = get_exif_from_files(data_path)
+    data = get_exif_from_files(dataset_path)
     df = pd.DataFrame(data=data)
 
     df = df.drop(columns="MakerNote")
-    df.to_csv("meta.csv", header=True, index=True)
+
+    df.to_csv("data/meta.csv", header=True, index=True) if create_csv else None
 
     return df
+
+
+# ==================================================================================================================================
+
+if __name__ == "__main__":
+    # Тестирование функций с измерением времени выполнения
+    directory_path = "dataset"
+    get_time(get_exif_data)(os.path.join(directory_path, "000.jpg"))
+    get_time(get_exif_from_files)(directory_path)
+    df = pd.DataFrame(get_time(create_exif_dataframe)(directory_path, True))
+    print(df)
