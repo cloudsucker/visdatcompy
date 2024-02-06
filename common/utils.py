@@ -37,7 +37,17 @@ images = []
 # ==================================================================================================================================
 
 
-def get_time(func):
+def get_time(func) -> None:
+    """
+    Декоратор для замера времени выполнения функции.
+
+    Вход:
+    - func (function): функция, время выполнения которой требуется замерить
+
+    Вывод:
+    - None
+    """
+
     def wrapper(*args, **kwargs):
         start_time = time.time()
         result = func(*args, **kwargs)
@@ -53,30 +63,40 @@ def get_time(func):
 
 
 def color_print(stamp: str, color: str, message: str, newline: bool) -> None:
-    """## Функция для красивого вывода в консоль
-
-    ## Input:
-
-    ### stamp (string)
-    - "none": ""
-    - "status": [%]
-    - "done": [V]
-    - "fail": [X]
-    - "warning": [!]
-    - "log": [$]
-    - "create": [+]
-
-    ### color: (string)
-    - "none": simple white
-    - "status": lightmagenta
-    - "done": green
-    - "fail": red
-    - "warning": yellow
-    - "log": lightblack
-    - "create": cyan
-
-    ## using libraries: colorama, to install: "pip install colorama"
     """
+    Функция для красивого вывода в консоль.
+
+    Вход:
+    - stamp (str): штамп для определения вида сообщения
+    - color (str): цвет текста сообщения
+    - message (str): текст сообщения
+    - newline (bool): флаг, определяющий, нужно ли добавлять переход на новую строку
+
+    Вывод:
+    - None
+
+    Используемые штампы:
+        - "none": пустой штамп
+        - "status": [%]
+        - "done": [V]
+        - "fail": [X]
+        - "warning": [!]
+        - "log": [$]
+        - "create": [+]
+
+    Используемые цвета:
+        - "none": обычный белый цвет
+        - "status": светло-пурпурный цвет
+        - "done": зеленый цвет
+        - "fail": красный цвет
+        - "warning": желтый цвет
+        - "log": светло-черный цвет
+        - "create": голубой цвет
+
+    Используемые библиотеки:
+        - colorama, установка: "pip install colorama"
+    """
+
     to_new_line = "\n" if newline else " "
 
     sys.stdout.write(f"{to_new_line}{style}{colors[color]}{stamps[stamp]}{message}")
@@ -86,13 +106,16 @@ def color_print(stamp: str, color: str, message: str, newline: bool) -> None:
 
 
 def scan_directory(dataset_path: str) -> list[str]:
-    """## Функция для сканирования директории и сохранения путей изображений.
+    """
+    Функция для сканирования директории и сохранения путей изображений.
 
-    ### Input:
-    - dataset_path (string): path to the dataset
+    Вход:
+    - dataset_path (str): путь к директории с изображениями
 
-    ### Output:
-    - images path list"""
+    Вывод:
+    - images (list[str]): список путей к изображениям
+    """
+
     try:
         for address, dirs, files in os.walk(dataset_path):
             for name in files:
@@ -101,6 +124,7 @@ def scan_directory(dataset_path: str) -> list[str]:
         color_print("fail", "fail", f"Error: {e}", "True")
 
     return images
+
 
 # ==================================================================================================================================
 
