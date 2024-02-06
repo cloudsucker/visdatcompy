@@ -130,4 +130,4 @@ def scan_directory(dataset_path: str) -> list[str]:
 
 # Проверка на скорость выполнения функции для сканирования директории
 if __name__ == "__main__":
-    get_time(scan_directory)()
+    get_time(scan_directory)("dataset")
