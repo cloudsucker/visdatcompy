@@ -111,7 +111,7 @@ class Metric:
         #     lambda im1, im2: ssim_skimage(im1, im2, win_size=3), save_to_csv
         # )
         ssim_partial = partial(ssim_skimage, win_size=3)
-        ssim_partial.__name__ = 'ssim_skimage'
+        ssim_partial.__name__ = "ssim_skimage"
         return self.calculate_metric(ssim_partial, save_to_csv)
 
     def psnr(self, save_to_csv=False) -> list[list[float]]:
@@ -177,11 +177,11 @@ if __name__ == "__main__":
     metrics.show(nrmse_result)
 
     # SSIM:
-    ssim_result = get_time(metrics.ssim)(True)  # <=======  Ошибка при создании .csv файла
+    ssim_result = get_time(metrics.ssim)(True)
     metrics.show(ssim_result)
 
     # PSNR:
-    psnr_result = get_time(metrics.psnr)(True)
+    psnr_result = get_time(metrics.psnr)(True)  # Убрать вывод предупреждения
     metrics.show(psnr_result)
 
     # NMI:
