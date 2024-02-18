@@ -13,11 +13,11 @@ def get_exif_data(image_path: str) -> dict[str, str]:
     """
     Получение метаданных EXIF изображения.
 
-    Вход:
-    - image_path (str): путь к изображению
+    Parameters:
+        - image_path (str): путь к изображению
 
-    Вывод:
-    - exif_dict (dict): словарь с метаданными EXIF
+    Returns:
+        - exif_dict (dict): словарь с метаданными EXIF
     """
 
     exif_dict = {}
@@ -47,11 +47,11 @@ def get_exif_from_files(directory: str) -> list[str]:
     """
     Сбор метаданных EXIF из файлов в указанной директории.
 
-    Вход:
-    - directory (str): путь к директории с изображениями
+    Parameters:
+        - directory (str): путь к директории с изображениями
 
-    Вывод:
-    - files_exif_list (list): список словарей с метаданными EXIF для каждого изображения
+    Returns:
+        - files_exif_list (list): список словарей с метаданными EXIF для каждого изображения
     """
 
     files_exif_list = []
@@ -75,11 +75,12 @@ def create_exif_dataframe(dataset_path: str, create_csv: bool) -> pd.DataFrame:
     """
     Создание датафрейма с метаданными EXIF изображений из указанной директории.
 
-    Вход:
-    - dataset_path (str): путь к директории с изображениями
+    Parameters:
+        - dataset_path (str): путь к директории с изображениями.
+        - create_csv (bool): флаг для создания csv файла с данными при необходимости.
 
-    Вывод:
-    - df (pd.DataFrame): датафрейм с метаданными EXIF изображений
+    Returns:
+        - df (pd.DataFrame): датафрейм с метаданными EXIF изображений
     """
 
     data = get_exif_from_files(dataset_path)
@@ -87,7 +88,7 @@ def create_exif_dataframe(dataset_path: str, create_csv: bool) -> pd.DataFrame:
 
     df = df.drop(columns="MakerNote")
 
-    df.to_csv("data/meta.csv", header=True, index=True) if create_csv else None
+    df.to_csv("data/meta.csv", header=True, index=False) if create_csv else None
 
     return df
 

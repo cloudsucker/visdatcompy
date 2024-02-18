@@ -18,11 +18,11 @@ def pix2pix(first_image_path: str, second_image_path: str) -> bool:
     """
     Функция для сравнения двух изображений методом Pixel to Pixel.
 
-    Вход:
+    Parameters:
     - first_image_path (string): путь к первому изображению
     - second_image_path (string): путь ко второму изображению
 
-    Вывод:
+    Returns:
     - image_equal (boolean): True, если изображения идентичны, иначе False
     """
 
@@ -41,11 +41,11 @@ def mse(first_image_path: str, second_image_path: str) -> float:
     """
     Функция для вычисления среднеквадратичной ошибки (MSE) между двумя изображениями.
 
-    Вход:
+    Parameters:
     - first_image_path (string): путь к первому изображению
     - second_image_path (string): путь ко второму изображению
 
-    Вывод:
+    Returns:
     - result (float): значение MSE между изображениями
     """
 
@@ -66,12 +66,12 @@ def nrmse(first_image_path: str, second_image_path: str) -> float:
     """
     Функция для вычисления нормализованной среднеквадратичной ошибки (NRMSE) между двумя изображениями.
 
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
+    Parameters:
+        - first_image_path (string): путь к первому изображению
+        - second_image_path (string): путь ко второму изображению
 
-    Вывод:
-    - result (float): значение NRMSE между изображениями
+    Returns:
+        - result (float): значение NRMSE между изображениями
     """
 
     resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
@@ -91,12 +91,12 @@ def ssim(first_image_path: str, second_image_path: str) -> bool:
     """
     Функция для вычисления структурного сходства (SSIM) между двумя изображениями.
 
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
+    Parameters:
+        - first_image_path (string): путь к первому изображению
+        - second_image_path (string): путь ко второму изображению
 
-    Вывод:
-    - result (float): значение SSIM между изображениями
+    Returns:
+        - result (float): значение SSIM между изображениями
     """
 
     resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
@@ -114,12 +114,12 @@ def psnr(first_image_path: str, second_image_path: str) -> float:
     """
     Функция для вычисления отношения сигнал/шум (PSNR) между двумя изображениями.
 
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
+    Parameters:
+        - first_image_path (string): путь к первому изображению
+        - second_image_path (string): путь ко второму изображению
 
-    Вывод:
-    - result (float): значение PSNR между изображениями
+    Returns:
+        - result (float): значение PSNR между изображениями
     """
 
     resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
@@ -137,12 +137,12 @@ def mae(first_image_path: str, second_image_path: str) -> float:
     """
     Функция для вычисления средней абсолютной ошибки (MAE) между двумя изображениями.
 
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
+    Parameters:
+        - first_image_path (string): путь к первому изображению
+        - second_image_path (string): путь ко второму изображению
 
-    Вывод:
-    - result (float): значение MAE между изображениями
+    Returns:
+        - result (float): значение MAE между изображениями
     """
 
     resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
@@ -160,12 +160,12 @@ def nmi(first_image_path: str, second_image_path: str) -> float:
     """
     Функция для вычисления нормализованной взаимной информации (NMI) между двумя изображениями.
 
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
+    Parameters:
+        - first_image_path (string): путь к первому изображению
+        - second_image_path (string): путь ко второму изображению
 
-    Вывод:
-    - result (float): значение NMI между изображениями
+    Returns:
+        - result (float): значение NMI между изображениями
     """
 
     resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
