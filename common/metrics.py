@@ -1,3 +1,5 @@
+from itertools import product
+from matplotlib import pyplot as plt
 import numpy as np
 from PIL import Image
 from utils import get_time, color_print
@@ -7,206 +9,139 @@ from skimage.metrics import structural_similarity as ssim_skimage
 from skimage.metrics import peak_signal_noise_ratio as psnr_skimage
 from sklearn.metrics import mean_absolute_error as mae_skimage
 from skimage.metrics import normalized_mutual_information as nmi_skimage
-
+from concurrent.futures import ThreadPoolExecutor
 
 # ==================================================================================================================================
 # |                                                              METRICS                                                           |
 # ==================================================================================================================================
 
-
-def pix2pix(first_image_path: str, second_image_path: str) -> bool:
+def pix2pix_np(image1: np.array, image2: np.array) -> bool:
     """
     Функция для сравнения двух изображений методом Pixel to Pixel.
 
     Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
+    - image1 (ArrayLike): одномерный массив первого изображения
+    - image2 (ArrayLike): одномерный массив второго изображения
 
     Вывод:
     - image_equal (boolean): True, если изображения идентичны, иначе False
     """
 
-    resized_image1 = Image.open(first_image_path).resize((512, 512))
-    resized_image2 = Image.open(second_image_path).resize((512, 512))
-
-    are_equal = np.array_equal(np.array(resized_image1), np.array(resized_image2))
+    are_equal = np.array_equal(image1, image2)
 
     return are_equal
 
+class Metric:
+    # def __init__(self, image_paths1: list, image_paths2: list):
+    #     self.image_paths1 = image_paths1
+    #     print("путь 1")
+    #     self.image_paths2 = image_paths2
+    #     print("путь 2")
+    #     self.resized_images1 = [self.load_and_resize_image(path) for path in image_paths1]
+    #     print("сжатые изображения 1")
+    #     self.resized_images2 = [self.load_and_resize_image(path) for path in image_paths2]
+    #     print("сжатые изображения 2")
+    # def load_and_resize_image(self, image_path):
+    #     with Image.open(image_path) as img:
+    #         print(image_path)
+    #         img_resized = img.resize((512, 512))
+    #         img_array = np.array(img_resized)
+    #     return img_array.flatten()
+    def __init__(self, image_paths1: list, image_paths2: list):
+        self.image_paths1 = image_paths1
+        self.image_paths2 = image_paths2
+        self.resized_images1 = self.load_and_resize_images(image_paths1)
+        self.resized_images2 = self.load_and_resize_images(image_paths2)
 
-# ==================================================================================================================================
+    def load_and_resize_images(self, image_paths):
+        with ThreadPoolExecutor() as executor:
+            resized_images = list(executor.map(self.load_and_resize_image, image_paths))
+            print (len(resized_images))
+        return resized_images
 
+    def load_and_resize_image(self, image_path):
+        with Image.open(image_path) as img:
+            img_resized = img.resize((512, 512))
+            img_array = np.array(img_resized)
+            print(image_path)
+        return img_array.flatten()
+    # def calculate_metric(self, metric_function):
+    #     metric_values = []
+    #     for img1 in self.resized_images1:
+    #         row = []
+    #         for img2 in self.resized_images2:
+    #             row.append(metric_function(img1, img2))
+    #         metric_values.append(row)
+    #     return metric_values
+    def calculate_metric(self, metric_function):
+        metric_values = []
+        k=0
+        with ThreadPoolExecutor() as executor:
+            for img1 in self.resized_images1:
+                row = list(executor.map(lambda img2: metric_function(img1, img2), self.resized_images2))
+                k+=1
+                print(k)
+                metric_values.append(row)
+        return metric_values
+    
+    def pix2pix(self) -> list:
+        return self.calculate_metric(pix2pix_np)
+    
+    def mae(self) -> list:
+        return self.calculate_metric(mae_skimage)
+    
+    def mse(self) -> list:
+        return self.calculate_metric(mse_sklearn)
 
-def mse(first_image_path: str, second_image_path: str) -> float:
-    """
-    Функция для вычисления среднеквадратичной ошибки (MSE) между двумя изображениями.
+    def nrmse(self) -> list:
+        return self.calculate_metric(nrmse_skimage)
 
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
+    def ssim(self) -> list:
+        return self.calculate_metric(lambda x, y: ssim_skimage(x, y, win_size=3))
 
-    Вывод:
-    - result (float): значение MSE между изображениями
-    """
-
-    resized_image1 = Image.open(first_image_path).resize((512, 512))
-    resized_image2 = Image.open(second_image_path).resize((512, 512))
-
-    result = mse_sklearn(
-        np.array(resized_image1).reshape(-1, 2), np.array(resized_image2).reshape(-1, 2)
-    )
-
-    return result
-
-
-# ==================================================================================================================================
-
-
-def nrmse(first_image_path: str, second_image_path: str) -> float:
-    """
-    Функция для вычисления нормализованной среднеквадратичной ошибки (NRMSE) между двумя изображениями.
-
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
-
-    Вывод:
-    - result (float): значение NRMSE между изображениями
-    """
-
-    resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
-    resized_image2 = np.array(Image.open(second_image_path).resize((512, 512)))
-
-    result = nrmse_skimage(
-        np.array(resized_image1).reshape(-1, 2), np.array(resized_image2).reshape(-1, 2)
-    )
-
-    return result
-
-
-# ==================================================================================================================================
-
-
-def ssim(first_image_path: str, second_image_path: str) -> bool:
-    """
-    Функция для вычисления структурного сходства (SSIM) между двумя изображениями.
-
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
-
-    Вывод:
-    - result (float): значение SSIM между изображениями
-    """
-
-    resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
-    resized_image2 = np.array(Image.open(second_image_path).resize((512, 512)))
-
-    result = ssim_skimage(resized_image1, resized_image2, win_size=3)
-
-    return result
-
-
-# ==================================================================================================================================
-
-
-def psnr(first_image_path: str, second_image_path: str) -> float:
-    """
-    Функция для вычисления отношения сигнал/шум (PSNR) между двумя изображениями.
-
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
-
-    Вывод:
-    - result (float): значение PSNR между изображениями
-    """
-
-    resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
-    resized_image2 = np.array(Image.open(second_image_path).resize((512, 512)))
-
-    result = psnr_skimage(resized_image1, resized_image2)
-
-    return result
-
-
-# ==================================================================================================================================
-
-
-def mae(first_image_path: str, second_image_path: str) -> float:
-    """
-    Функция для вычисления средней абсолютной ошибки (MAE) между двумя изображениями.
-
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
-
-    Вывод:
-    - result (float): значение MAE между изображениями
-    """
-
-    resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
-    resized_image2 = np.array(Image.open(second_image_path).resize((512, 512)))
-
-    result = mae_skimage(resized_image1.flatten(), resized_image2.flatten())
-
-    return result
-
-
-# ==================================================================================================================================
-
-
-def nmi(first_image_path: str, second_image_path: str) -> float:
-    """
-    Функция для вычисления нормализованной взаимной информации (NMI) между двумя изображениями.
-
-    Вход:
-    - first_image_path (string): путь к первому изображению
-    - second_image_path (string): путь ко второму изображению
-
-    Вывод:
-    - result (float): значение NMI между изображениями
-    """
-
-    resized_image1 = np.array(Image.open(first_image_path).resize((512, 512)))
-    resized_image2 = np.array(Image.open(second_image_path).resize((512, 512)))
-
-    result = nmi_skimage(resized_image1.flatten(), resized_image2.flatten())
-
-    return result
-
+    def psnr(self) -> list:
+        return self.calculate_metric(psnr_skimage)
+    
+    def nmi(self) -> list:
+        return self.calculate_metric(nmi_skimage)
+    def show(self, matrix):
+        plt.imshow(matrix, cmap='viridis', interpolation='nearest')
+        plt.colorbar()
+        plt.show()
 
 # ==================================================================================================================================
 
 if __name__ == "__main__":
-    # Тест всех функций с измерением времени выполнения.
-    image_path1 = "dataset/000.jpg"
-    image_path2 = "dataset/001.jpg"
+    #image_paths1 = ["test_images/PSNR-base.jpg", "test_images/PSNR-90.jpg", "test_images/PSNR-30.jpg", "test_images/PSNR-10.jpg"]
+    #image_paths2 = ["test_images/PSNR-base.jpg", "test_images/PSNR-90.jpg", "test_images/PSNR-30.jpg", "test_images/PSNR-10.jpg"]
+    from utils import scan_directory
+    import os
+    image_paths1 =  scan_directory('dataset')
+    x2 =  list(map(lambda x: os.path.join(x[0], x[1]), image_paths1))
+    print()
 
-    # Pixel to Pixel Comparison
-    result_pix2pix = get_time(pix2pix)(image_path1, image_path2)
-    color_print("status", "status", f"P2P Comparison: {result_pix2pix}", "True")
+    metric = Metric(x2, x2)
 
-    # MSE
-    result_mse = get_time(mse)(image_path1, image_path2)
-    color_print("status", "status", f"MSE: {result_mse}", "True")
+    #pix2pix_values = metric.pix2pix()
+    mae_values = metric.mae()
+    # mse_values = metric.mse()
+    # nrmse_values = metric.nrmse()
+    # ssim_values = metric.ssim()
+    # psnr_values = metric.psnr()
+    # nmi_values = metric.nmi()
 
-    # NRMSE
-    result_nrmse = get_time(nrmse)(image_path1, image_path2)
-    color_print("status", "status", f"NRMSE: {result_nrmse}", "True")
-
-    # SSIM
-    result_ssim = get_time(ssim)(image_path1, image_path2)
-    color_print("status", "status", f"SSIM: {result_ssim}", "True")
-
-    # PSNR
-    result_psnr = get_time(psnr)(image_path1, image_path2)
-    color_print("status", "status", f"PSNR: {result_psnr}", "True")
-
-    # MAE
-    result_mae = get_time(mae)(image_path1, image_path2)
-    color_print("status", "status", f"MAE: {result_mae}", "True")
-
-    # NMI
-    result_nmi = get_time(nmi)(image_path1, image_path2)
-    color_print("status", "status", f"NMI: {result_nmi}", "True")
+    #print(f"pix2pix values: {pix2pix_values}")
+    print(f"mae values: {mae_values}")
+    # print(f"MSE values: {mse_values}")
+    # print(f"NRMSE values: {nrmse_values}")
+    # print(f"SSIM values: {ssim_values}")
+    # print(f"PSNR values: {psnr_values}")
+    # print(f"NMI values: {nmi_values}")
+    
+    #metric.show(pix2pix_values)    
+    metric.show(mae_values)    
+    # metric.show(mse_values)    
+    # metric.show(nrmse_values)    
+    # metric.show(ssim_values)    
+    # metric.show(psnr_values)    
+    # metric.show(nmi_values)
