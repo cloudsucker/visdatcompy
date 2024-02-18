@@ -107,11 +107,8 @@ class Metric:
         return self.calculate_metric(nrmse_skimage, save_to_csv)
 
     def ssim(self, save_to_csv=False) -> list[list[float]]:
-        # return self.calculate_metric(
-        #     lambda im1, im2: ssim_skimage(im1, im2, win_size=3), save_to_csv
-        # )
         ssim_partial = partial(ssim_skimage, win_size=3)
-        ssim_partial.__name__ = "ssim_skimage"
+        ssim_partial.__name__ = "structural_similarity_index"
         return self.calculate_metric(ssim_partial, save_to_csv)
 
     def psnr(self, save_to_csv=False) -> list[list[float]]:
@@ -126,6 +123,7 @@ class Metric:
 
         Parameters:
             - metric_values (list[list]): матрица сравнения по выбранной метрике.
+            - filename (string): название файла для сохранения.
         """
 
         plt.imshow(metric_values, cmap="viridis", interpolation="nearest")
@@ -161,29 +159,36 @@ if __name__ == "__main__":
     # 3. Сравнение, получение результатов, сохранение в .csv и вывод в виде тепловых матриц:
 
     # Pixel To Pixel:
+    color_print("status", "status", "Pixel To Pixel", True)
     pix2pix_result = get_time(metrics.pix2pix)(True)
     metrics.show(pix2pix_result)
 
     # MAE:
+    color_print("status", "status", "MAE", True)
     mae_result = get_time(metrics.mae)(True)
     metrics.show(mae_result)
 
     # MSE:
+    color_print("status", "status", "MSE", True)
     mse_result = get_time(metrics.mse)(True)
     metrics.show(mse_result)
 
     # NRMSE:
+    color_print("status", "status", "NRMSE", True)
     nrmse_result = get_time(metrics.nrmse)(True)
     metrics.show(nrmse_result)
 
     # SSIM:
+    color_print("status", "status", "SSIM", True)
     ssim_result = get_time(metrics.ssim)(True)
     metrics.show(ssim_result)
 
     # PSNR:
-    psnr_result = get_time(metrics.psnr)(True)  # Убрать вывод предупреждения
+    color_print("status", "status", "PSNR", True)
+    psnr_result = get_time(metrics.psnr)(True)  # TODO: Убрать "RuntimeWarning"
     metrics.show(psnr_result)
 
     # NMI:
+    color_print("status", "status", "NMI", True)
     nmi_result = get_time(metrics.nmi)(True)
     metrics.show(nmi_result)
