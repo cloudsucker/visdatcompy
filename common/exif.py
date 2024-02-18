@@ -88,7 +88,7 @@ def create_exif_dataframe(dataset_path: str, create_csv: bool) -> pd.DataFrame:
 
     df = df.drop(columns="MakerNote")
 
-    df.to_csv("data/meta.csv", header=True, index=True) if create_csv else None
+    df.to_csv("data/meta.csv", header=True, index=False) if create_csv else None
 
     return df
 
