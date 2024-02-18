@@ -23,16 +23,13 @@ def compare(
     metric: str = None,
 ) -> pd.DataFrame:
     """
+    Главная функция для сравнения фотографий.
 
-    ОПИСАНИЕ ПЕРЕДЕЛАТЬ                     <=================================================================
+    Parameters:
+        - image_path (str): путь к изображению
 
-    Получение метаданных EXIF изображения.
-
-    Вход:
-    - image_path (str): путь к изображению
-
-    Вывод:
-    - exif_dict (dict): словарь с метаданными EXIF
+    Returns:
+        - exif_dict (dict): словарь с метаданными EXIF
     """
 
     dataset = scan_directory(dataset_path)
@@ -47,7 +44,7 @@ def compare(
     # 2. Сравнение Pix2Pix.
     # 3. Сравнение по метрикам.
 
-    # Вывод: таблица схожести.
+    # Returns: таблица схожести.
 
     for image in dataset:
         if fast_checking:

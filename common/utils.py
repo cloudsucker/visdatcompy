@@ -41,11 +41,11 @@ def get_time(func) -> None:
     """
     Декоратор для замера времени выполнения функции.
 
-    Вход:
-    - func (function): функция, время выполнения которой требуется замерить
+    Parameters:
+        - func (function): функция, время выполнения которой требуется замерить
 
-    Вывод:
-    - None
+    Returns:
+        - None
     """
 
     def wrapper(*args, **kwargs):
@@ -65,16 +65,16 @@ def color_print(stamp: str, color: str, message: str, newline: bool) -> None:
     """
     Функция для красивого вывода в консоль.
 
-    Вход:
-    - stamp (str): штамп для определения вида сообщения
-    - color (str): цвет текста сообщения
-    - message (str): текст сообщения
-    - newline (bool): флаг, определяющий, нужно ли добавлять переход на новую строку
+    Parameters:
+        - stamp (str): штамп для определения вида сообщения
+        - color (str): цвет текста сообщения
+        - message (str): текст сообщения
+        - newline (bool): флаг, определяющий, нужно ли добавлять переход на новую строку
 
-    Вывод:
-    - None
+    Returns:
+        - None
 
-    Используемые штампы:
+    Stamps:
         - "none": пустой штамп
         - "status": [%]
         - "done": [V]
@@ -83,7 +83,7 @@ def color_print(stamp: str, color: str, message: str, newline: bool) -> None:
         - "log": [$]
         - "create": [+]
 
-    Используемые цвета:
+    Colors:
         - "none": обычный белый цвет
         - "status": светло-пурпурный цвет
         - "done": зеленый цвет
@@ -92,7 +92,7 @@ def color_print(stamp: str, color: str, message: str, newline: bool) -> None:
         - "log": светло-черный цвет
         - "create": голубой цвет
 
-    Используемые библиотеки:
+    Libraries:
         - colorama, установка: "pip install colorama"
     """
 
@@ -108,11 +108,11 @@ def scan_directory(dataset_path: str) -> list[str]:
     """
     Функция для сканирования директории и сохранения путей изображений.
 
-    Вход:
-    - dataset_path (str): путь к директории с изображениями
+    Parameters:
+        - dataset_path (str): путь к директории с изображениями
 
-    Вывод:
-    - images (list[str]): список путей к изображениям
+    Returns:
+        - images (list[str]): список путей к изображениям
     """
 
     try:
