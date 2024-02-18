@@ -1,9 +1,9 @@
-from matplotlib import pyplot as plt
+import os
 import numpy as np
-from numpy import array_equal
-from PIL import Image
 import pandas as pd
-from utils import get_time, color_print
+from PIL import Image
+from matplotlib import pyplot as plt
+from utils import get_time, color_print, scan_directory
 from sklearn.metrics import mean_squared_error as mse_sklearn
 from skimage.metrics import normalized_root_mse as nrmse_skimage
 from skimage.metrics import structural_similarity as ssim_skimage
@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 # ==================================================================================================================================
 # |                                                              METRICS                                                           |
 # ==================================================================================================================================
+
 
 class Metric:
     def __init__(self, image_paths1: list, image_paths2: list):
@@ -33,10 +34,10 @@ class Metric:
         Открывает и масштабирует список фотографий в разрешении 512px x 512px
         с использованием многопоточности.
 
-        Вход:
+        Parameters:
             - image_paths (list[str]): список путей к фотографиям.
 
-        Вывод:
+        Returns:
             - list[np.array]: список numpy-массивов открытых фотографий.
         """
 
@@ -50,10 +51,10 @@ class Metric:
         """
         Открывает и масштабирует две фотографии в разрешении 512px x 512px.
 
-        Вход:
+        Parameters:
             - image_path (string): путь к фотографии.
 
-        Вывод:
+        Returns:
             - np.array: numpy массив открытой фотографии.
         """
 
@@ -64,14 +65,17 @@ class Metric:
 
         return img_array.flatten()
 
-    def calculate_metric(self, metric_function: object, save_to_csv) -> list[float]:
+    def calculate_metric(
+        self, metric_function: object, save_to_csv: bool = False
+    ) -> list[float]:
         """
         Функция для сравнения по выбранной метрике
 
-        Вход:
+        Parameters:
             - metric_function: объект функции выбранной метрики.
-        Вывод:
-            -                                      <==========================        WTF IS THIS
+
+        Returns:
+            - list[float]: матрица сравнения по метрике.
         """
 
         metric_values = []
@@ -88,77 +92,93 @@ class Metric:
             self.save(metric_function.__name__, metric_values)
         return metric_values
 
-    def pix2pix(self, save_to_csv=False) -> list:
-        return self.calculate_metric(array_equal, save_to_csv)
+    def pix2pix(self, save_to_csv=False) -> list[list[bool]]:
+        return self.calculate_metric(np.array_equal, save_to_csv)
 
-    def mae(self, save_to_csv=False) -> list:
+    def mae(self, save_to_csv=False) -> list[list[float]]:
         return self.calculate_metric(mae_skimage, save_to_csv)
 
-    def mse(self, save_to_csv=False) -> list:
+    def mse(self, save_to_csv=False) -> list[list[float]]:
         return self.calculate_metric(mse_sklearn, save_to_csv)
 
-    def nrmse(self, save_to_csv=False) -> list:
+    def nrmse(self, save_to_csv=False) -> list[list[float]]:
         return self.calculate_metric(nrmse_skimage, save_to_csv)
 
-    def ssim(self, save_to_csv=False) -> list:
+    def ssim(self, save_to_csv=False) -> list[list[float]]:
         return self.calculate_metric(
-            lambda x, y: ssim_skimage(x, y, win_size=3), save_to_csv
-        )  # < ================   WTF IS THIS
+            lambda im1, im2: ssim_skimage(im1, im2, win_size=3), save_to_csv
+        )
 
-    def psnr(self, save_to_csv=False) -> list:
+    def psnr(self, save_to_csv=False) -> list[list[float]]:
         return self.calculate_metric(psnr_skimage, save_to_csv)
 
-    def nmi(self, save_to_csv) -> list:
+    def nmi(self, save_to_csv) -> list[list[float]]:
         return self.calculate_metric(nmi_skimage, save_to_csv)
 
-    def show(self, matrix):
-        plt.imshow(matrix, cmap="viridis", interpolation="nearest")
+    def show(self, metric_values: list[list]) -> None:
+        """
+        Функция для отображения результата сравнения по метрике в виде тепловой матрицы.
+
+        Parameters:
+            - metric_values (list[list]): матрица сравнения по выбранной метрике.
+        """
+
+        plt.imshow(metric_values, cmap="viridis", interpolation="nearest")
         plt.colorbar()
         plt.show()
-    def save(self, metric_name: str, metric_values):
-        df = pd.DataFrame(metric_values, columns = self.image_paths2, index = self.image_paths1)
-        csv_filename = f'{metric_name}.csv'
+
+    def save(self, metric_name: str, metric_values: list[list]) -> None:
+        """
+        Сохраняет матрицу с результатами сравнения по метрике в csv файл.
+
+        Parameters:
+            - metric_name (string): название метрики (название создаваемого файла).
+            - metric_values (list[list]): матрица сравнения по выбранной метрике.
+        """
+        df = pd.DataFrame(
+            metric_values, columns=self.image_paths2, index=self.image_paths1
+        )
+        csv_filename = f"metrics_results/{metric_name}.csv"
         df.to_csv(csv_filename)
-        print(f"CSV файл '{csv_filename}' успешно создан.")
 
 
 # ==================================================================================================================================
 
 if __name__ == "__main__":
-    print("starting test...")
 
-    #image_paths1 = ["test_images/PSNR-base.jpg", "test_images/PSNR-90.jpg", "test_images/PSNR-30.jpg", "test_images/PSNR-10.jpg"]
-    #image_paths2 = ["test_images/PSNR-base.jpg", "test_images/PSNR-90.jpg", "test_images/PSNR-30.jpg", "test_images/PSNR-10.jpg"]
-    
-    from utils import scan_directory
-    import os
+    # 1. Сканируем директорию нашего датасета и объединяем данные в пути.
+    image_data = scan_directory("dataset_small")
+    image_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_data))
 
-    image_paths3 = scan_directory("dataset")
-    x2 = list(map(lambda x: os.path.join(x[0], x[1]), image_paths3))
-    print()
+    # 2. Создаём новый объект класса.
+    metrics = Metric(image_paths, image_paths)
 
-    metric = Metric(x2, x2)
+    # 3. Сравнение, получение результатов, сохранение в .csv и вывод в виде тепловых матриц:
 
-    #pix2pix_values = metric.pix2pix(True)
-    mae_values = metric.mae(True)
-    # mse_values = metric.mse()
-    # nrmse_values = metric.nrmse()
-    # ssim_values = metric.ssim()
-    # psnr_values = metric.psnr()
-    # nmi_values = metric.nmi()
+    # Pixel To Pixel:
+    pix2pix_result = get_time(metrics.pix2pix)(True)
+    metrics.show(pix2pix_result)
 
-    #print(f"pix2pix values: {pix2pix_values}")
-    print(f"mae values: {mae_values}")
-    # print(f"MSE values: {mse_values}")
-    # print(f"NRMSE values: {nrmse_values}")
-    # print(f"SSIM values: {ssim_values}")
-    # print(f"PSNR values: {psnr_values}")
-    # print(f"NMI values: {nmi_values}")
+    # MAE:
+    mae_result = get_time(metrics.mae)(True)
+    metrics.show(mae_result)
 
-    # metric.show(pix2pix_values)
-    metric.show(mae_values)
-    # metric.show(mse_values)
-    # metric.show(nrmse_values)
-    # metric.show(ssim_values)
-    # metric.show(psnr_values)
-    # metric.show(nmi_values)
+    # MSE:
+    mse_result = get_time(metrics.mse)(True)
+    metrics.show(mse_result)
+
+    # NRMSE:
+    nrmse_result = get_time(metrics.nrmse)(True)
+    metrics.show(nrmse_result)
+
+    # SSIM:
+    ssim_result = get_time(metrics.ssim)  # <=======  Ошибка при создании .csv файла
+    metrics.show(ssim_result)
+
+    # PSNR:
+    psnr_result = get_time(metrics.psnr)(True)
+    metrics.show(psnr_result)
+
+    # NMI:
+    nmi_result = get_time(metrics.nmi)(True)
+    metrics.show(nmi_result)

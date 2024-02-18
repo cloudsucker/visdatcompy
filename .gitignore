@@ -1,5 +1,7 @@
 dataset/
+dataset_small/
 static/logo.psd
-data/meta.csv
+exif_results/meta.csv
+metrics_results/
 common/__pycache__/
 test_images/
