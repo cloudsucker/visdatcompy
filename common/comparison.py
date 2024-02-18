@@ -1,5 +1,7 @@
+import os
 import metrics
 import pandas as pd
+from metrics import Metric
 from utils import scan_directory
 from exif import get_exif_data
 
@@ -17,8 +19,8 @@ metric_list = {
 
 
 def compare(
-    image_path: str,
-    dataset_path: str,
+    dataset_path_1: str,
+    dataset_path_2: str,
     fast_checking: bool = False,
     metric: str = None,
 ) -> pd.DataFrame:
@@ -32,25 +34,36 @@ def compare(
         - exif_dict (dict): словарь с метаданными EXIF
     """
 
-    dataset = scan_directory(dataset_path)
-    # Переделать в корректные пути
+    # Сканируем изображения в директории:
+    image_data_1 = scan_directory(dataset_path_1)
+    image_data_2 = scan_directory(dataset_path_2)
 
-    current_metric = metric_list[metric]
+    # Преобразовываем полученные данные в пути:
+    image_paths_1 = list(map(lambda x: os.path.join(x[0], x[1]), image_data_1))
+    image_paths_2 = list(map(lambda x: os.path.join(x[0], x[1]), image_data_2))
 
-    # 1. Сравнение по exif-данным.
-    # 1.1. С помощью get_exif_data(image_path) получаем exif-данные нашей первой фотки. (ПРЕОБРАЗОВАТЬ В DATAFRAME)
-    # 1.2. С помощью create_exif_dataframe(dataset_path) получаем exif-данные всех изображений. (УЖЕ DATAFRAME)
-    # 1.3. Сравниваем exif-данные фотки с другими изображениями для поиска дублей.
-    # 2. Сравнение Pix2Pix.
-    # 3. Сравнение по метрикам.
+    metrics = Metric(image_paths_1, image_paths_2)
 
-    # Returns: таблица схожести.
+    if fast_checking == True:
+        # TODO: Здесь сделать сравнение по exif-данным.
 
-    for image in dataset:
-        if fast_checking:
-            current_metric(image_path, image)
-
-    return None
+        pix2pix_result = metrics.pix2pix()
+        # TODO: Здесь логика для анализа полученных данных
 
 
-# ==================================================================================================================================
+"""
+ _________________________________________________________________________________________________________________
+|                                                                                                                 |
+|                                           ЛОГИКА РАБОТЫ ГЛАВНОЙ ФУНКЦИИ:                                        |
+|                                                                                                                 |
+| 1. Сравнение по exif-данным.                                                                                    |
+| 1.1. С помощью get_exif_data(image_path) получаем exif-данные нашей первой фотки. (ПРЕОБРАЗОВАТЬ В DATAFRAME)   |
+| 1.2. С помощью create_exif_dataframe(dataset_path) получаем exif-данные всех изображений. (УЖЕ DATAFRAME)       |
+| 1.3. Сравниваем exif-данные фотки с другими изображениями для поиска дублей.                                    |
+| 2. Сравнение Pix2Pix.                                                                                           |
+| 3. Сравнение по метрикам.                                                                                       |
+|                                                                                                                 |
+| Returns: таблица схожести.                                                                                      |
+|                                                                                                                 |
+|_________________________________________________________________________________________________________________|
+"""

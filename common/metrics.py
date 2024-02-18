@@ -49,7 +49,7 @@ class Metric:
 
     def load_and_resize_image(self, image_path: str) -> np.array:
         """
-        Открывает и масштабирует две фотографии в разрешении 512px x 512px.
+        Открывает изображение и масштабирует её в разрешении 512px x 512px.
 
         Parameters:
             - image_path (string): путь к фотографии.
@@ -69,7 +69,7 @@ class Metric:
         self, metric_function: object, save_to_csv: bool = False
     ) -> list[float]:
         """
-        Функция для сравнения по выбранной метрике
+        Функция для сравнения по выбранной метрике.
 
         Parameters:
             - metric_function: объект функции выбранной метрики.
@@ -81,6 +81,7 @@ class Metric:
         metric_values = []
 
         with ThreadPoolExecutor() as executor:
+            # Проходим по изображениям в resized_images1 и сравниваем со всеми в resized_images2:
             for img1 in self.resized_images1:
                 row = list(
                     executor.map(
