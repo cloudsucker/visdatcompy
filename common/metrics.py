@@ -12,6 +12,7 @@ from sklearn.metrics import mean_absolute_error as mae_skimage
 from skimage.metrics import normalized_mutual_information as nmi_skimage
 from concurrent.futures import ThreadPoolExecutor
 
+from functools import partial
 
 # ==================================================================================================================================
 # |                                                              METRICS                                                           |
@@ -105,9 +106,12 @@ class Metric:
         return self.calculate_metric(nrmse_skimage, save_to_csv)
 
     def ssim(self, save_to_csv=False) -> list[list[float]]:
-        return self.calculate_metric(
-            lambda im1, im2: ssim_skimage(im1, im2, win_size=3), save_to_csv
-        )
+        # return self.calculate_metric(
+        #     lambda im1, im2: ssim_skimage(im1, im2, win_size=3), save_to_csv
+        # )
+        ssim_partial = partial(ssim_skimage, win_size=3)
+        ssim_partial.__name__ = 'ssim_skimage'
+        return self.calculate_metric(ssim_partial, save_to_csv)
 
     def psnr(self, save_to_csv=False) -> list[list[float]]:
         return self.calculate_metric(psnr_skimage, save_to_csv)
@@ -172,7 +176,7 @@ if __name__ == "__main__":
     metrics.show(nrmse_result)
 
     # SSIM:
-    ssim_result = get_time(metrics.ssim)  # <=======  Ошибка при создании .csv файла
+    ssim_result = get_time(metrics.ssim)(True)  # <=======  Ошибка при создании .csv файла
     metrics.show(ssim_result)
 
     # PSNR:
