@@ -114,7 +114,7 @@ def scan_directory(dataset_path: str) -> list[str]:
     Returns:
         - images (list[str]): список путей к изображениям
     """
-
+    images = []
     try:
         for address, dirs, files in os.walk(dataset_path):
             for name in files:
