@@ -2,3 +2,4 @@ dataset/
 static/logo.psd
 common/__pycache__/
 tests/cows_dataset/
+visdatcompy.egg-info/
