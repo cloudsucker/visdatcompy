@@ -2,11 +2,13 @@ import os.path
 import pandas as pd
 from PIL import Image
 from PIL.ExifTags import TAGS
-from utils import scan_directory, color_print, get_time
+from visdatcompy.common.utils import scan_directory, color_print, get_time
 
 # ==================================================================================================================================
 # |                                                               EXIF                                                             |
 # ==================================================================================================================================
+
+__all__ = ["get_exif_data", "get_exif_from_files", "create_exif_dataframe"]
 
 
 def get_exif_data(image_path: str) -> dict[str, str]:
@@ -88,7 +90,7 @@ def create_exif_dataframe(dataset_path: str, create_csv: bool) -> pd.DataFrame:
 
     df = df.drop(columns="MakerNote")
 
-    df.to_csv("data/meta.csv", header=True, index=False) if create_csv else None
+    df.to_csv("exif_results/meta.csv", header=True, index=False) if create_csv else None
 
     return df
 

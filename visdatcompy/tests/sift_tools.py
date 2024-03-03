@@ -2,9 +2,8 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from ipywidgets import interact
 from scipy import stats
-from common.utils import color_print, scan_directory
+from visdatcompy.common.utils import color_print, scan_directory
 
 
 # ==================================================================================================================================
@@ -243,14 +242,14 @@ if __name__ == "__main__":
     # Определение пути к директории с изображениями
     dataset_path = "dataset/"
 
-    # Извлечение дескрипторов SIFT из изображений
-    X, y = get_descriptors(dataset_path, echo=True)
+    # # Извлечение дескрипторов SIFT из изображений
+    # X, y = get_descriptors(dataset_path, echo=True)
 
-    # Получение списка путей к изображениям в директории
-    image_paths = scan_directory(dataset_path)
+    # # Получение списка путей к изображениям в директории
+    # image_paths = scan_directory(dataset_path)
 
-    # Формирование полных путей к изображениям
-    image_full_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_paths))
+    # # Формирование полных путей к изображениям
+    # image_full_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_paths))
 
-    # Визуализация тестового изображения и его наиболее похожего изображения
-    visualize_similar_images(0, X, y, image_full_paths)
+    # # Визуализация тестового изображения и его наиболее похожего изображения
+    # visualize_similar_images(0, X, y, image_full_paths)

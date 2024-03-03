@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from matplotlib import pyplot as plt
-from utils import get_time, color_print, scan_directory
+from visdatcompy.common.utils import get_time, color_print, scan_directory
 from sklearn.metrics import mean_squared_error as mse_sklearn
 from skimage.metrics import normalized_root_mse as nrmse_skimage
 from skimage.metrics import structural_similarity as ssim_skimage
@@ -17,6 +17,8 @@ from functools import partial
 # ==================================================================================================================================
 # |                                                              METRICS                                                           |
 # ==================================================================================================================================
+
+__all__ = ["Metric"]
 
 
 class Metric:

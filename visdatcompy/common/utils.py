@@ -5,6 +5,8 @@ from colorama import Fore, Style, init
 
 init()
 
+__all__ = ["get_time", "color_print", "scan_directory"]
+
 colors = {
     "none": "",
     "status": Fore.LIGHTMAGENTA_EX,
@@ -30,7 +32,6 @@ stamps = {
 DATASET_PATH = "dataset/"
 
 images = []
-
 
 # ==================================================================================================================================
 # |                                                            UTILS                                                               |

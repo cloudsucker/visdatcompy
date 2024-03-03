@@ -1,16 +1,15 @@
 import os
-import metrics
 import pandas as pd
-from metrics import Metric
-from utils import scan_directory
-from exif import get_exif_data
+from visdatcompy.common.metrics import Metric
+from visdatcompy.common.utils import scan_directory
+from visdatcompy.common.exif import get_exif_data
 
 metric_list = {
-    "pix2pix": metrics.pix2pix,
-    "mse": metrics.mse,
-    "ssim": metrics.ssim,
-    "psnr": metrics.psnr,
-    "mae": metrics.mae,
+    "pix2pix": Metric.pix2pix,
+    "mse": Metric.mse,
+    "ssim": Metric.ssim,
+    "psnr": Metric.psnr,
+    "mae": Metric.mae,
 }
 
 # ==================================================================================================================================
