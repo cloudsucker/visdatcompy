@@ -83,9 +83,14 @@ class Metric:
 
         metric_values = []
 
+        image_number = 0
+
         with ThreadPoolExecutor() as executor:
             # Проходим по изображениям в resized_images1 и сравниваем со всеми в resized_images2:
             for img1 in self.resized_images1:
+                image_number += 1
+                print(image_number)
+
                 row = list(
                     executor.map(
                         lambda img2: metric_function(img1, img2), self.resized_images2
@@ -152,11 +157,16 @@ class Metric:
 if __name__ == "__main__":
 
     # 1. Сканируем директорию нашего датасета и объединяем данные в пути.
-    image_data = scan_directory("dataset_small")
+    image_data = scan_directory("datasets/Google Landmarks v2/test_500")
     image_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_data))
 
+    image = ["datasets/Google Landmarks v2/test_500/000a0aee5e90cbaf.jpg"]
+
     # 2. Создаём новый объект класса.
-    metrics = Metric(image_paths, image_paths)
+    metrics = Metric(
+        image,
+        image_paths,
+    )
 
     # 3. Сравнение, получение результатов, сохранение в .csv и вывод в виде тепловых матриц:
 

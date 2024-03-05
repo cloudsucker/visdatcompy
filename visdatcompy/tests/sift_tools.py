@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from visdatcompy.common.utils import color_print, scan_directory
 
+import time
 
 # ==================================================================================================================================
 # |                                                             SIFT TOOLS                                                         |
@@ -233,23 +234,43 @@ TODO: Оформить всё это в виде класса с сохране�
 
 FIXME: Убрать "RuntimeWarning" в common.metrics для метода PSNR.
 
-FIXME: Посел вывода общего кол-ва дескрипторов выводится предупреждение: 
+FIXME: После вывода общего кол-ва дескрипторов выводится предупреждение: 
 [V] Количество дескрипторов SIFT в 322 изображениях: 318017c:\Users\sharj\Desktop\Учёба\visdatcompy\tests\sift_tools.py:167: DeprecationWarning: Conversion of an array with ndim > 0 to a scalar is deprecated, and will error in future. Ensure you extract a single element from your array before performing this operation. (Deprecated NumPy 1.25.)
 corresponding_labels[k] = other_labels[max_index]
 """
 
 if __name__ == "__main__":
     # Определение пути к директории с изображениями
-    dataset_path = "dataset/"
+    dataset_path = "datasets/Google Landmarks v2/test_500"
 
-    # # Извлечение дескрипторов SIFT из изображений
-    # X, y = get_descriptors(dataset_path, echo=True)
+    time_start = time.time()
 
-    # # Получение списка путей к изображениям в директории
-    # image_paths = scan_directory(dataset_path)
+    # Извлечение дескрипторов SIFT из изображений
+    X, y = get_descriptors(dataset_path, echo=True)
 
-    # # Формирование полных путей к изображениям
-    # image_full_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_paths))
+    time_end = time.time()
 
-    # # Визуализация тестового изображения и его наиболее похожего изображения
-    # visualize_similar_images(0, X, y, image_full_paths)
+    color_print(
+        "log",
+        "log",
+        f"Время извлечения дескриптеров SIFT из 500 изображений: {time_end - time_start} секунд.",
+    )
+
+    # Получение списка путей к изображениям в директории
+    image_paths = scan_directory(dataset_path)
+
+    # Формирование полных путей к изображениям
+    image_full_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_paths))
+
+    time_start = time.time()
+
+    # Визуализация тестового изображения и его наиболее похожего изображения
+    visualize_similar_images(0, X, y, image_full_paths)
+
+    time_end = time.time()
+
+    color_print(
+        "log",
+        "log",
+        f"Время поиска совпадения для 1 изображения из 500 изображений: {time_end - time_start} секунд.",
+    )

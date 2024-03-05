@@ -62,7 +62,7 @@ def get_time(func) -> None:
 # ==================================================================================================================================
 
 
-def color_print(stamp: str, color: str, message: str, newline: bool) -> None:
+def color_print(stamp: str, color: str, message: str, newline: bool = True) -> None:
     """
     Функция для красивого вывода в консоль.
 
