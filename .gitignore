@@ -1,4 +1,4 @@
-datasets/
+drone_dataset/
 static/logo.psd
 visdatcompy/__pycache__/
 visdatcompy/common/__pycache__/
