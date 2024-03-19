@@ -105,7 +105,7 @@ def color_print(stamp: str, color: str, message: str, newline: bool = True) -> N
 # ==================================================================================================================================
 
 
-def scan_directory(dataset_path: str) -> list[str]:
+def scan_directory(dataset_path: str, echo: bool = False) -> list[str]:
     """
     Функция для сканирования директории и сохранения путей изображений.
 
@@ -115,11 +115,14 @@ def scan_directory(dataset_path: str) -> list[str]:
     Returns:
         - images (list[str]): список путей к изображениям
     """
+
     images = []
     try:
         for address, dirs, files in os.walk(dataset_path):
             for name in files:
                 images.append((address, name))
+                if echo:
+                    color_print("log", "log", f"{address} - - - {name}")
     except Exception as e:
         color_print("fail", "fail", f"Error: {e}", "True")
 
