@@ -5,3 +5,4 @@ visdatcompy/common/__pycache__/
 visdatcompy/tests/__pycache__/
 visdatcompy/tests/cows_dataset/
 visdatcompy.egg-info/
+datasets
