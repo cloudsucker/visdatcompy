@@ -2,6 +2,7 @@ import os.path
 import pandas as pd
 from PIL import Image
 from PIL.ExifTags import TAGS
+
 from visdatcompy.common.utils import scan_directory, color_print, get_time
 
 # ==================================================================================================================================

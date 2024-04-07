@@ -1,11 +1,11 @@
 import os
 import cv2
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
-from visdatcompy.common.utils import color_print, scan_directory
 
-import time
+from visdatcompy.common.utils import color_print, scan_directory
 
 # ==================================================================================================================================
 # |                                                             SIFT TOOLS                                                         |
@@ -34,7 +34,7 @@ def load_image(image_path: str, echo: bool = False) -> np.ndarray:
     height, width = image.shape[:2]
 
     # Вычисление новых размеров, сохраняя пропорции
-    new_width = 256 #изменил с 512 до 256
+    new_width = 256  # изменил с 512 до 256
     new_height = int(height * (new_width / width))
 
     # Масштабирование изображения до новых размеров

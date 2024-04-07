@@ -6,6 +6,19 @@ from visdatcompy.common.utils import scan_directory, color_print
 
 class Images(object):
     def __init__(self, dataset_path: str):
+        """
+        Класс изображений, объект класса представляет собой датасет, состоящий из изображений
+        внутри указанного пути.
+
+        Parameters:
+            - dataset_path: путь к датасету.
+
+        Attributes:
+            - dataset_path: путь к датасету.
+            - dataset_paths: пути к найденным изображениям в датасете.
+            - dataset_name: название датасета.
+            - dataset_image_count: кол-во найденных изображений в датасете.
+        """
         self.dataset_path = dataset_path
         self.dataset_paths = self._scan_dataset_paths(self.dataset_path)
         self.dataset_name = self._dataset_small_paths[0][0]

@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+
 from visdatcompy.common.metrics import Metric
 from visdatcompy.common.utils import scan_directory
 from visdatcompy.common.exif import get_exif_data

@@ -2,8 +2,8 @@ import os
 import numpy as np
 import pandas as pd
 from PIL import Image
+from functools import partial
 from matplotlib import pyplot as plt
-from visdatcompy.common.utils import get_time, color_print, scan_directory
 from sklearn.metrics import mean_squared_error as mse_sklearn
 from skimage.metrics import normalized_root_mse as nrmse_skimage
 from skimage.metrics import structural_similarity as ssim_skimage
@@ -12,7 +12,7 @@ from sklearn.metrics import mean_absolute_error as mae_skimage
 from skimage.metrics import normalized_mutual_information as nmi_skimage
 from concurrent.futures import ThreadPoolExecutor
 
-from functools import partial
+from visdatcompy.common.utils import get_time, color_print, scan_directory
 
 # ==================================================================================================================================
 # |                                                              METRICS                                                           |
