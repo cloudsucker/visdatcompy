@@ -200,8 +200,12 @@ class HashHandler:
 
 
 if __name__ == "__main__":
-    Images1 = Images(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
-    Images2 = Images(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
+    Images1 = Images(
+        r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\small_drone_test_compressed"
+    )
+    Images2 = Images(
+        r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\small_drone_test_compressed"
+    )
 
     Hashes = HashHandler(Images1, Images2)
 
@@ -222,12 +226,3 @@ if __name__ == "__main__":
 
     color_print("status", "status", "ColorMomentHash:")
     Hashes.find_similars("color_moment", to_csv=True)
-
-    # similars = pd.read_csv("average.csv", encoding="utf-8")
-
-    # default_path = r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows"
-    # Img = Images(default_path)
-
-    # for _, row in similars.iterrows():
-    #     Img.visualize(row[0])
-    #     Img.visualize(row["similar_image_name"])
