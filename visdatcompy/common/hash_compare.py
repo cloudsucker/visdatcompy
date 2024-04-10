@@ -7,7 +7,12 @@ from visdatcompy.common.image_handler import Images
 
 
 class HashHandler:
-    def __init__(self, Images1: Images, Images2: Images):
+    def __init__(
+        self,
+        Images1: Images,
+        Images2: Images,
+        results_path: str = "results/hash_results/",
+    ):
         """
         Класс для сравнения изображений с помощью хэшей.
 
@@ -28,9 +33,15 @@ class HashHandler:
         self.Images1 = Images1
         self.Images2 = Images2
 
+        self.results_path = results_path
+
     @get_time
     def find_similars(
-        self, compare_method: str = "average", to_csv: bool = False, echo: bool = False
+        self,
+        compare_method: str = "average",
+        return_df: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
     ):
         """
         Функция для нахождения схожих изображений с помощью хэшей.
@@ -100,9 +111,13 @@ class HashHandler:
                         )
 
             if to_csv:
-                results.to_csv(f"{compare_method}.csv", encoding="utf-8")
+                results.to_csv(
+                    f"{self.results_path}{compare_method}.csv", encoding="utf-8"
+                )
 
-            return results
+            if return_df:
+                return results
+            return True
 
         except Exception as e:
             color_print("fail", "fail", f"Ошибка сравнения: {e}")
@@ -110,6 +125,7 @@ class HashHandler:
     def hash_matrix(
         self,
         compare_method: str = "average",
+        return_df: bool = True,
         to_csv: bool = False,
         echo: bool = False,
     ):
@@ -172,10 +188,12 @@ class HashHandler:
 
             if to_csv:
                 results.to_csv(
-                    f"hash_results/{compare_method}_matrix.csv", encoding="utf-8"
+                    f"{self.results_path}{compare_method}_matrix.csv", encoding="utf-8"
                 )
 
-            return results
+            if return_df:
+                return results
+            return True
 
         except Exception as e:
             color_print("fail", "fail", f"Ошибка сравнения: {e}")
@@ -188,28 +206,22 @@ if __name__ == "__main__":
     Hashes = HashHandler(Images1, Images2)
 
     color_print("status", "status", "AverageHash:")
-    results = Hashes.find_similars("average", True)
-    results.to_csv("average.csv", encoding="utf-8")
+    Hashes.find_similars("average", to_csv=True)
 
     color_print("status", "status", "PHash:")
-    results = Hashes.find_similars("p", True)
-    results.to_csv("p.csv", encoding="utf-8")
+    Hashes.find_similars("p", to_csv=True)
 
     color_print("status", "status", "MarrHildrethHash:")
-    results = Hashes.find_similars("marr_hildreth", True)
-    results.to_csv("marr_hildreth.csv", encoding="utf-8")
+    Hashes.find_similars("marr_hildreth", to_csv=True)
 
     color_print("status", "status", "RadialVarianceHash:")
-    results = Hashes.find_similars("radial_variance", True)
-    results.to_csv("radial_variance.csv", encoding="utf-8")
+    Hashes.find_similars("radial_variance", to_csv=True)
 
     color_print("status", "status", "BlockMeanHash:")
-    results = Hashes.find_similars("block_mean", True)
-    results.to_csv("block_mean.csv", encoding="utf-8")
+    Hashes.find_similars("block_mean", to_csv=True)
 
     color_print("status", "status", "ColorMomentHash:")
-    results = Hashes.find_similars("color_moment", True)
-    results.to_csv("color_moment.csv", encoding="utf-8")
+    Hashes.find_similars("color_moment", to_csv=True)
 
     # similars = pd.read_csv("average.csv", encoding="utf-8")
 

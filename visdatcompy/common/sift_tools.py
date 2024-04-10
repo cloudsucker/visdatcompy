@@ -34,7 +34,7 @@ def load_image(image_path: str, echo: bool = False) -> np.ndarray:
     height, width = image.shape[:2]
 
     # Вычисление новых размеров, сохраняя пропорции
-    new_width = 256  # изменил с 512 до 256
+    new_width = 512
     new_height = int(height * (new_width / width))
 
     # Масштабирование изображения до новых размеров
@@ -139,6 +139,8 @@ def find_similar_image(
 
     Returns:
         - int: Индекс наиболее похожего изображения.
+
+    TODO: В SIFT_test.ipynb пофиксили функцию, применить тот же фикс сюда.
     """
 
     # Определение индекса тестового изображения и индексов изображений из других классов
@@ -241,7 +243,7 @@ corresponding_labels[k] = other_labels[max_index]
 
 if __name__ == "__main__":
     # Определение пути к директории с изображениями
-    dataset_path = "datasets/drones"
+    dataset_path = "datasets/Google Landmarks v2/test_500"
 
     time_start = time.time()
 
