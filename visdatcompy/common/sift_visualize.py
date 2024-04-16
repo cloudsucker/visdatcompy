@@ -2,7 +2,7 @@ from ipywidgets import interact
 from matplotlib import pyplot as plt
 
 from visdatcompy.common.utils import color_print
-from visdatcompy.common.sift_tools import find_similar_image, load_image
+from visdatcompy.common.sift import find_similar_image, load_image
 
 
 class SIFT_GUI:

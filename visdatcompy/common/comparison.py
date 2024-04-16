@@ -1,16 +1,15 @@
 import os
 import pandas as pd
 
-from visdatcompy.common.metrics import Metric
+from visdatcompy.common.metrics import Metrics
 from visdatcompy.common.utils import scan_directory
-from visdatcompy.common.exif import get_exif_data
 
 metric_list = {
-    "pix2pix": Metric.pix2pix,
-    "mse": Metric.mse,
-    "ssim": Metric.ssim,
-    "psnr": Metric.psnr,
-    "mae": Metric.mae,
+    "pix2pix": Metrics.pix2pix,
+    "mse": Metrics.mse,
+    "ssim": Metrics.ssim,
+    "psnr": Metrics.psnr,
+    "mae": Metrics.mae,
 }
 
 # ==================================================================================================================================
@@ -42,7 +41,7 @@ def compare(
     image_paths_1 = list(map(lambda x: os.path.join(x[0], x[1]), image_data_1))
     image_paths_2 = list(map(lambda x: os.path.join(x[0], x[1]), image_data_2))
 
-    metrics = Metric(image_paths_1, image_paths_2)
+    metrics = Metrics(image_paths_1, image_paths_2)
 
     if fast_checking == True:
         # TODO: Здесь сделать сравнение по exif-данным.

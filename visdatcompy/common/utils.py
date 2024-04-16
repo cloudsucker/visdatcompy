@@ -29,8 +29,6 @@ stamps = {
     "create": "[+] ",
 }  # Штампы вывода
 
-DATASET_PATH = "dataset/"
-
 images = []
 
 # ==================================================================================================================================
@@ -53,7 +51,9 @@ def get_time(func) -> None:
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time() - start_time
+
         color_print("log", "log", f"Время выполнения: {end_time}", True)
+
         return result
 
     return wrapper
@@ -113,20 +113,23 @@ def scan_directory(dataset_path: str, echo: bool = False) -> list[str]:
         - dataset_path (str): путь к директории с изображениями
 
     Returns:
-        - images (list[str]): список путей к изображениям
+        - list[str]: список путей к изображениям
     """
 
-    images = []
+    image_paths = []
+
     try:
-        for address, dirs, files in os.walk(dataset_path):
+        for address, _, files in os.walk(dataset_path):
             for name in files:
-                images.append((address, name))
+                image_paths.append((address, name))
+
                 if echo:
                     color_print("log", "log", f"{address} - - - {name}")
-    except Exception as e:
-        color_print("fail", "fail", f"Error: {e}", "True")
 
-    return images
+    except Exception as e:
+        color_print("fail", "fail", f"Ошибка сканирования директории: {e}")
+
+    return image_paths
 
 
 # ==================================================================================================================================

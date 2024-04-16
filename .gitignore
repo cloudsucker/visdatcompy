@@ -1,6 +1,6 @@
 static/logo.psd
 visdatcompy/__pycache__/
 visdatcompy/common/__pycache__/
-visdatcompy/tests/__pycache__/
-visdatcompy/tests/cows_dataset/
+visdatcompy/research/__pycache__/
+visdatcompy/research/cows_dataset/
 visdatcompy.egg-info/

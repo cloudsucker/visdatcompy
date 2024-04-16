@@ -1,7 +1,5 @@
-import os
 import numpy as np
 import pandas as pd
-from PIL import Image
 from functools import partial
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error as mse_sklearn
@@ -12,117 +10,148 @@ from sklearn.metrics import mean_absolute_error as mae_skimage
 from skimage.metrics import normalized_mutual_information as nmi_skimage
 from concurrent.futures import ThreadPoolExecutor
 
-from visdatcompy.common.utils import get_time, color_print, scan_directory
+from visdatcompy.common.image_handler import Dataset
+from visdatcompy.common.utils import get_time, color_print
 
 # ==================================================================================================================================
 # |                                                              METRICS                                                           |
 # ==================================================================================================================================
 
-__all__ = ["Metric"]
 
-
-class Metric:
-    def __init__(self, image_paths1: list, image_paths2: list):
-
-        # Передаём списки путей в локальные переменные:
-        self.image_paths1 = image_paths1
-        self.image_paths2 = image_paths2
-
-        # Закидываем уже открытые фотки в списки массивов:
-        self.resized_images1 = self.load_and_resize_images(image_paths1)
-        self.resized_images2 = self.load_and_resize_images(image_paths2)
-
-    def load_and_resize_images(self, image_paths: list[str]) -> list[np.array]:
+class Metrics:
+    def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
         """
-        Открывает и масштабирует список фотографий в разрешении 512px x 512px
-        с использованием многопоточности.
+        Класс для сравнения двух датасетов по метрикам.
 
         Parameters:
-            - image_paths (list[str]): список путей к фотографиям.
-
-        Returns:
-            - list[np.array]: список numpy-массивов открытых фотографий.
+            - Dataset1 (object): объект класса Dataset первого датасета.
+            - Dataset2 (object): объект класса Dataset второго датасета.
+            - results_path: путь для сохранения файлов .csv с результатами.
         """
 
-        with ThreadPoolExecutor() as executor:
-            resized_images = list(executor.map(self.load_and_resize_image, image_paths))
-            # print(len(resized_images))
+        self.Dataset1 = Dataset1
+        self.Dataset2 = Dataset2
 
-        return resized_images
+        self.results_path = results_path
 
-    def load_and_resize_image(self, image_path: str) -> np.array:
-        """
-        Открывает изображение и масштабирует её в разрешении 512px x 512px.
+    def pix2pix(
+        self,
+        resize_images: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
+    ) -> list[bool]:
 
-        Parameters:
-            - image_path (string): путь к фотографии.
+        return self._calculate(np.array_equal, resize_images, to_csv, echo)
 
-        Returns:
-            - np.array: numpy массив открытой фотографии.
-        """
-
-        with Image.open(image_path) as img:
-            img_resized = img.resize((512, 512))
-            img_array = np.array(img_resized)
-            # print(image_path)
-
-        return img_array.flatten()
-
-    def calculate_metric(
-        self, metric_function: object, save_to_csv: bool = False
+    def mae(
+        self,
+        resize_images: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
     ) -> list[float]:
-        """
-        Функция для сравнения по выбранной метрике.
 
-        Parameters:
-            - metric_function: объект функции выбранной метрики.
+        return self._calculate(mae_skimage, resize_images, to_csv, echo)
 
-        Returns:
-            - list[float]: матрица сравнения по метрике.
-        """
+    def mse(
+        self,
+        resize_images: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
+    ) -> list[float]:
 
-        metric_values = []
+        return self._calculate(mse_sklearn, resize_images, to_csv, echo)
 
-        image_number = 0
+    def nrmse(
+        self,
+        resize_images: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
+    ) -> list[float]:
 
-        with ThreadPoolExecutor() as executor:
-            # Проходим по изображениям в resized_images1 и сравниваем со всеми в resized_images2:
-            for img1 in self.resized_images1:
-                image_number += 1
-                print(image_number)
+        return self._calculate(nrmse_skimage, resize_images, to_csv, echo)
 
-                row = list(
-                    executor.map(
-                        lambda img2: metric_function(img1, img2), self.resized_images2
-                    )
-                )
-                metric_values.append(row)
-        if save_to_csv == True:
-            self.save(metric_function.__name__, metric_values)
-        return metric_values
-
-    def pix2pix(self, save_to_csv=False) -> list[list[bool]]:
-        return self.calculate_metric(np.array_equal, save_to_csv)
-
-    def mae(self, save_to_csv=False) -> list[list[float]]:
-        return self.calculate_metric(mae_skimage, save_to_csv)
-
-    def mse(self, save_to_csv=False) -> list[list[float]]:
-        return self.calculate_metric(mse_sklearn, save_to_csv)
-
-    def nrmse(self, save_to_csv=False) -> list[list[float]]:
-        return self.calculate_metric(nrmse_skimage, save_to_csv)
-
-    def ssim(self, save_to_csv=False) -> list[list[float]]:
+    def ssim(
+        self,
+        resize_images: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
+    ) -> list[float]:
         ssim_partial = partial(ssim_skimage, win_size=3)
         ssim_partial.__name__ = "structural_similarity_index"
-        return self.calculate_metric(ssim_partial, save_to_csv)
 
-    def psnr(self, save_to_csv=False) -> list[list[float]]:
-        return self.calculate_metric(psnr_skimage, save_to_csv)
+        return self._calculate(ssim_partial, resize_images, to_csv, echo)
 
-    def nmi(self, save_to_csv) -> list[list[float]]:
-        return self.calculate_metric(nmi_skimage, save_to_csv)
+    def psnr(
+        self,
+        resize_images: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
+    ) -> list[float]:
+
+        return self._calculate(psnr_skimage, resize_images, to_csv, echo)
+
+    def nmi(
+        self,
+        resize_images: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
+    ) -> list[float]:
+
+        return self._calculate(nmi_skimage, resize_images, to_csv, echo)
+
+    def _calculate(
+        self,
+        metric_function: object,
+        resize_images: bool = True,
+        to_csv: bool = False,
+        echo: bool = False,
+    ) -> list[list]:
+
+        result_matrix = []
+
+        with ThreadPoolExecutor() as executor:
+            for first_image in self.Dataset1.images:
+
+                row = []
+
+                # Создаем список задач для обработки каждой пары изображений
+                futures = []
+
+                for second_image in self.Dataset2.images:
+                    if echo:
+                        color_print(
+                            "log",
+                            "log",
+                            f"Сравниваем изображения: {first_image.filename} и {second_image.filename}.",
+                        )
+
+                    # Субмитим задачу в ThreadPoolExecutor
+                    if resize_images:
+                        future = executor.submit(
+                            metric_function,
+                            first_image.read_and_resize(),
+                            second_image.read_and_resize(),
+                        )
+                    else:
+                        future = executor.submit(
+                            metric_function,
+                            first_image.read(),
+                            second_image.read(),
+                        )
+
+                    # Добавляем объект Future в список
+                    futures.append(future)
+
+                # Получаем результаты выполнения задач и добавляем в строку
+                for future in futures:
+                    row.append(future.result())
+
+                result_matrix.append(row)
+
+        if to_csv == True:
+            self.save(metric_function.__name__, result_matrix)
+
+        return result_matrix
 
     def show(self, metric_values: list[list]) -> None:
         """
@@ -137,67 +166,53 @@ class Metric:
         plt.colorbar()
         plt.show()
 
-    def save(self, metric_name: str, metric_values: list[list]) -> None:
+    def save(self, filename: str, metric_values: list[list]) -> None:
         """
         Сохраняет матрицу с результатами сравнения по метрике в csv файл.
 
         Parameters:
-            - metric_name (string): название метрики (название создаваемого файла).
+            - filename (string): название файла .csv без расширения.
             - metric_values (list[list]): матрица сравнения по выбранной метрике.
         """
-        df = pd.DataFrame(
-            metric_values, columns=self.image_paths2, index=self.image_paths1
-        )
-        csv_filename = f"metrics_results/{metric_name}.csv"
-        df.to_csv(csv_filename)
+        columns = [image.filename for image in self.Dataset1.images]
+        index = [image.filename for image in self.Dataset2.images]
+
+        df = pd.DataFrame(metric_values, columns=columns, index=index)
+        df.to_csv(rf"{self.results_path}{filename}.csv")
 
 
 # ==================================================================================================================================
 
 if __name__ == "__main__":
+    dataset1 = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
+    dataset2 = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
 
-    # 1. Сканируем директорию нашего датасета и объединяем данные в пути.
-    image_data = scan_directory(
-        r"C:\Users\sharj\Desktop\STUDY\visdatcompy\dataset_small"
-    )
-    image_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_data))
+    metrics = Metrics(dataset1, dataset2)
 
-    # 2. Создаём новый объект класса.
-    metrics = Metric(image_paths, image_paths)
-
-    # 3. Сравнение, получение результатов, сохранение в .csv и вывод в виде тепловых матриц:
-
-    # Pixel To Pixel:
-    color_print("status", "status", "Pixel To Pixel", True)
-    pix2pix_result = get_time(metrics.pix2pix)(True)
+    color_print("log", "log", "Pixel 2 Pixel:")
+    pix2pix_result = get_time(metrics.pix2pix)(to_csv=True)
     metrics.show(pix2pix_result)
 
-    # MAE:
-    color_print("status", "status", "MAE", True)
-    mae_result = get_time(metrics.mae)(True)
+    color_print("log", "log", "MAE:")
+    mae_result = get_time(metrics.mae)()
     metrics.show(mae_result)
 
-    # MSE:
-    color_print("status", "status", "MSE", True)
-    mse_result = get_time(metrics.mse)(True)
+    color_print("log", "log", "MSE:")
+    mse_result = get_time(metrics.mse)()
     metrics.show(mse_result)
 
-    # NRMSE:
-    color_print("status", "status", "NRMSE", True)
-    nrmse_result = get_time(metrics.nrmse)(True)
+    color_print("log", "log", "NRMSE:")
+    nrmse_result = get_time(metrics.nrmse)()
     metrics.show(nrmse_result)
 
-    # SSIM:
-    color_print("status", "status", "SSIM", True)
-    ssim_result = get_time(metrics.ssim)(True)
+    color_print("log", "log", "SSIM:")
+    ssim_result = get_time(metrics.ssim)()
     metrics.show(ssim_result)
 
-    # PSNR:
-    color_print("status", "status", "PSNR", True)
-    psnr_result = get_time(metrics.psnr)(True)  # TODO: Убрать "RuntimeWarning"
+    color_print("log", "log", "PSNR:")
+    psnr_result = get_time(metrics.psnr)()
     metrics.show(psnr_result)
 
-    # NMI:
-    color_print("status", "status", "NMI", True)
-    nmi_result = get_time(metrics.nmi)(True)
+    color_print("log", "log", "NMI:")
+    nmi_result = get_time(metrics.nmi)()
     metrics.show(nmi_result)

@@ -1,4 +1,4 @@
-from .common.exif import *
+from .common.junk_exif import *
 from .common.metrics import *
 from .common.utils import *
 

@@ -1,24 +1,24 @@
-import os
 import cv2
 import pandas as pd
 
 from visdatcompy.common.utils import color_print, get_time
-from visdatcompy.common.image_handler import Images
+from visdatcompy.common.image_handler import Dataset
+
+
+# ==================================================================================================================================
+# |                                                           HASH HANDLER                                                         |
+# ==================================================================================================================================
 
 
 class HashHandler:
-    def __init__(
-        self,
-        Images1: Images,
-        Images2: Images,
-        results_path: str = "results/hash_results/",
-    ):
+    def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
         """
         Класс для сравнения изображений с помощью хэшей.
 
         Parameters:
-            - Images1: объект класса Images с первым датасетом (изображением).
-            - Images2: объект класса Images со вторым датасетом (изображением).
+            - Dataset1: объект класса Dataset с первым датасетом.
+            - Dataset2: объект класса Dataset со вторым датасетом.
+            - results_path: путь для сохранения файлов .csv с результатами.
         """
 
         self.methods = {
@@ -30,12 +30,11 @@ class HashHandler:
             "color_moment": cv2.img_hash.ColorMomentHash_create(),
         }
 
-        self.Images1 = Images1
-        self.Images2 = Images2
+        self.Dataset1: Dataset = Dataset1
+        self.Dataset2: Dataset = Dataset2
 
         self.results_path = results_path
 
-    @get_time
     def find_similars(
         self,
         compare_method: str = "average",
@@ -73,26 +72,20 @@ class HashHandler:
         try:
             hash_function = self.methods[compare_method]
 
-            for image1_path in self.Images1.dataset_paths:
-                first_image = cv2.imread(image1_path)
-                first_image_name = os.path.basename(image1_path)
-
+            for first_image in self.Dataset1.images:
                 min_similarity = float("inf")
                 similar_image_name = ""
 
-                for image2_path in self.Images2.dataset_paths:
-                    second_image = cv2.imread(image2_path)
-                    second_image_name = os.path.basename(image2_path)
-
-                    if first_image_name != second_image_name:
-                        first_image_hash = hash_function.compute(first_image)
-                        second_image_hash = hash_function.compute(second_image)
+                for second_image in self.Dataset2.images:
+                    if first_image.filename != second_image.filename:
+                        first_image_hash = hash_function.compute(first_image.read())
+                        second_image_hash = hash_function.compute(second_image.read())
 
                         if echo:
                             color_print(
                                 "log",
                                 "log",
-                                f"Сравнение [{first_image_name} - {second_image_name}]:",
+                                f"Сравнение [{first_image.filename} - {second_image.filename}]:",
                             )
 
                         similarity = hash_function.compare(
@@ -104,9 +97,9 @@ class HashHandler:
 
                         if similarity < min_similarity:
                             min_similarity = similarity
-                            similar_image_name = second_image_name
+                            similar_image_name = second_image.filename
 
-                        results.loc[first_image_name, "similar_image_name"] = (
+                        results.loc[first_image.filename, "similar_image_name"] = (
                             similar_image_name
                         )
 
@@ -156,22 +149,16 @@ class HashHandler:
         try:
             hash_function = self.methods[compare_method]
 
-            for image1_path in self.Images1.dataset_paths:
-                first_image = cv2.imread(image1_path)
-                first_image_name = os.path.basename(image1_path)
-
-                for image2_path in self.Images2.dataset_paths:
-                    second_image = cv2.imread(image2_path)
-                    second_image_name = os.path.basename(image2_path)
-
-                    first_image_hash = hash_function.compute(first_image)
-                    second_image_hash = hash_function.compute(second_image)
+            for first_image in self.Dataset1.images:
+                for second_image in self.Dataset2.images:
+                    first_image_hash = hash_function.compute(first_image.read())
+                    second_image_hash = hash_function.compute(second_image.read())
 
                     if echo:
                         color_print(
                             "log",
                             "log",
-                            f"Сравнение [{first_image_name} - {second_image_name}]:",
+                            f"Сравнение [{first_image.filename} - {second_image.filename}]:",
                         )
 
                     similarity = hash_function.compare(
@@ -181,10 +168,12 @@ class HashHandler:
                     if echo:
                         color_print("none", "status", f"Хэш: {similarity}", False)
 
-                    if first_image_name not in results:
-                        results[first_image_name] = {}
+                    if first_image.filename not in results:
+                        results[first_image.filename] = {}
 
-                    results.loc[first_image_name, second_image_name] = similarity
+                    results.loc[first_image.filename, second_image.filename] = (
+                        similarity
+                    )
 
             if to_csv:
                 results.to_csv(
@@ -199,30 +188,29 @@ class HashHandler:
             color_print("fail", "fail", f"Ошибка сравнения: {e}")
 
 
+# ==================================================================================================================================
+
+
 if __name__ == "__main__":
-    Images1 = Images(
-        r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\small_drone_test_compressed"
-    )
-    Images2 = Images(
-        r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\small_drone_test_compressed"
-    )
+    dataset1 = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
+    dataset2 = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
 
-    Hashes = HashHandler(Images1, Images2)
+    Hashes = HashHandler(dataset1, dataset2)
 
-    color_print("status", "status", "AverageHash:")
-    Hashes.find_similars("average", to_csv=True)
+    color_print("log", "log", "AverageHash:")
+    get_time(Hashes.find_similars)("average", to_csv=True)
 
-    color_print("status", "status", "PHash:")
-    Hashes.find_similars("p", to_csv=True)
+    color_print("log", "log", "PHash:")
+    get_time(Hashes.find_similars)("p", to_csv=True)
 
-    color_print("status", "status", "MarrHildrethHash:")
-    Hashes.find_similars("marr_hildreth", to_csv=True)
+    color_print("log", "log", "MarrHildrethHash:")
+    get_time(Hashes.find_similars)("marr_hildreth", to_csv=True)
 
-    color_print("status", "status", "RadialVarianceHash:")
-    Hashes.find_similars("radial_variance", to_csv=True)
+    color_print("log", "log", "RadialVarianceHash:")
+    get_time(Hashes.find_similars)("radial_variance", to_csv=True)
 
-    color_print("status", "status", "BlockMeanHash:")
-    Hashes.find_similars("block_mean", to_csv=True)
+    color_print("log", "log", "BlockMeanHash:")
+    get_time(Hashes.find_similars)("block_mean", to_csv=True)
 
-    color_print("status", "status", "ColorMomentHash:")
-    Hashes.find_similars("color_moment", to_csv=True)
+    color_print("log", "log", "ColorMomentHash:")
+    get_time(Hashes.find_similars)("color_moment", to_csv=True)
