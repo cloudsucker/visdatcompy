@@ -2,20 +2,26 @@ import numpy as np
 import pandas as pd
 from functools import partial
 from matplotlib import pyplot as plt
+from concurrent.futures import ThreadPoolExecutor
 from sklearn.metrics import mean_squared_error as mse_sklearn
 from skimage.metrics import normalized_root_mse as nrmse_skimage
 from skimage.metrics import structural_similarity as ssim_skimage
 from skimage.metrics import peak_signal_noise_ratio as psnr_skimage
 from sklearn.metrics import mean_absolute_error as mae_skimage
 from skimage.metrics import normalized_mutual_information as nmi_skimage
-from concurrent.futures import ThreadPoolExecutor
 
 from visdatcompy.common.image_handler import Dataset
 from visdatcompy.common.utils import get_time, color_print
 
+
+__all__ = ["Metrics"]
+
+
 # ==================================================================================================================================
 # |                                                              METRICS                                                           |
 # ==================================================================================================================================
+
+# FIXME: Убрать "RuntimeWarning" в common.metrics для метода PSNR.
 
 
 class Metrics:
@@ -184,8 +190,8 @@ class Metrics:
 # ==================================================================================================================================
 
 if __name__ == "__main__":
-    dataset1 = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
-    dataset2 = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
+    dataset1 = Dataset(r"datasets\cows")
+    dataset2 = Dataset(r"datasets\cows")
 
     metrics = Metrics(dataset1, dataset2)
 

@@ -1,56 +1,25 @@
 import os
 import pandas as pd
 
+from visdatcompy.common.hash import Hash
+from visdatcompy.common.sift import SIFT
 from visdatcompy.common.metrics import Metrics
-from visdatcompy.common.utils import scan_directory
+from visdatcompy.common.image_handler import Image, Dataset
 
-metric_list = {
-    "pix2pix": Metrics.pix2pix,
-    "mse": Metrics.mse,
-    "ssim": Metrics.ssim,
-    "psnr": Metrics.psnr,
-    "mae": Metrics.mae,
-}
 
 # ==================================================================================================================================
 # |                                                            COMPARISON                                                          |
 # ==================================================================================================================================
 
 
-def compare(
-    dataset_path_1: str,
-    dataset_path_2: str,
-    fast_checking: bool = False,
-    metric: str = None,
-) -> pd.DataFrame:
-    """
-    Главная функция для сравнения фотографий.
+def compare(dataset1: Dataset, dataset2: Dataset):
 
-    Parameters:
-        - image_path (str): путь к изображению
+    # 1. Получение метаданных, сравнение по ним, нахождение полных дублей
+    dataset1.get_exif_data()
+    dataset2.get_exif_data()
 
-    Returns:
-        - exif_dict (dict): словарь с метаданными EXIF
-    """
-
-    # Сканируем изображения в директории:
-    image_data_1 = scan_directory(dataset_path_1)
-    image_data_2 = scan_directory(dataset_path_2)
-
-    # Преобразовываем полученные данные в пути:
-    image_paths_1 = list(map(lambda x: os.path.join(x[0], x[1]), image_data_1))
-    image_paths_2 = list(map(lambda x: os.path.join(x[0], x[1]), image_data_2))
-
-    metrics = Metrics(image_paths_1, image_paths_2)
-
-    if fast_checking == True:
-        # TODO: Здесь сделать сравнение по exif-данным.
-
-        pix2pix_result = metrics.pix2pix()
-        # TODO: Здесь логика для анализа полученных данных
-
-    # TODO: Реализовать сравнение по выбранным метрикам.
-    # TODO: Объединить результаты сравнения метрик в одну тепловую матрицу.
+    # 2. Метрики???
+    # 3. ХЭШИ, ORB, FAST.
 
 
 """

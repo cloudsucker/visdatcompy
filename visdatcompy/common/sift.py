@@ -1,278 +1,219 @@
-import os
 import cv2
-import time
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import stats
+import matplotlib.pyplot as plt
 
-from visdatcompy.common.utils import color_print, scan_directory
+from visdatcompy.common.utils import color_print
+from visdatcompy.common.image_handler import Image, Dataset
+
+
+__all__ = ["SIFT"]
+
 
 # ==================================================================================================================================
 # |                                                             SIFT TOOLS                                                         |
 # ==================================================================================================================================
 
 
-def load_image(image_path: str, echo: bool = False) -> np.ndarray:
-    """
-    Загружает изображение из файла и масштабирует его до ширины 512 пикселей, сохраняя пропорции.
+class SIFT:
+    def __init__(self, dataset1: Dataset, dataset2: Dataset):
+        """
+        Класс для поиска схожих изображений с помощью SIFT.
 
-    Parameters:
-        - image_path (str): Путь к файлу изображения.
-        - echo (bool, optional): Управляет выводом сообщения о загрузке изображения. Если True, то выводится сообщение.
+        Attributes:
+            - Dataset1 (Dataset): Объект класса Dataset.
+            - Dataset2 (Dataset): Объект класса Dataset.
 
-    Returns:
-        - numpy.ndarray: Загруженное и масштабированное изображение в формате RGB.
-    """
+        Methods:
+            - get_descriptors(dataset: Dataset): Извлекает дескрипторы из датасета
+            и помещает их в объекты датасета.
+            - find_similar_image(target_image: Image, dataset: Dataset): ищет схожие
+            изображения в датасете.
+            - visualize_similar_images(target_image: Image, dataset: Dataset): ищет
+            схожие изображения и визуализирует найденную пару.
+        """
 
-    if echo:
-        color_print("create", "create", f"Загружаем изображение {image_path}", True)
+        self.Dataset1 = dataset1
+        self.Dataset2 = dataset2 if dataset1.path != dataset2.path else dataset1
 
-    # Загрузка изображения и преобразование его в формат RGB
-    image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+    def get_descriptors(self, dataset: Dataset) -> tuple:
+        """
+        Извлекает дескрипторы SIFT из изображений в датасете. Присваивает их
+        объекту класса Dataset.
 
-    # Получение текущих размеров изображения
-    height, width = image.shape[:2]
+        Parameters:
+            - dataset (Dataset): Объект датасета класса Dataset.
 
-    # Вычисление новых размеров, сохраняя пропорции
-    new_width = 512
-    new_height = int(height * (new_width / width))
+        Returns:
+            - tuple: Кортеж из двух элементов:
+                - numpy.ndarray: Массив дескрипторов SIFT.
+                - numpy.ndarray: Массив меток изображений.
+        """
 
-    # Масштабирование изображения до новых размеров
-    resized_image = cv2.resize(image, (new_width, new_height))
+        # Создание объекта для извлечения дескрипторов SIFT
+        feature_extractor = cv2.SIFT_create()
 
-    return resized_image
+        # Инициализация переменных для хранения дескрипторов и меток
+        descriptor_count = 0
+        descriptors_array = np.zeros((10000000, 128))
+        labels_array = np.zeros((10000000,))
 
+        # Извлечение дескрипторов SIFT из каждого изображения
+        for i, image in enumerate(dataset.images):
 
-# ==================================================================================================================================
+            img = self._read_image_as_rgb(image)
+            img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
+            _, descriptors = feature_extractor.detectAndCompute(img_gray, None)
+            current_descriptors_count = descriptors.shape[0]
 
-def get_descriptors(dataset_path: str, echo: bool = False) -> tuple:
-    """
-    Извлекает дескрипторы SIFT из изображений в указанной директории.
+            for desc in range(current_descriptors_count):
+                current_descriptor = descriptors[desc, :]
 
-    Parameters:
-        - dataset_path (str): Путь к директории с изображениями.
-        - echo (bool, optional): Управляет выводом информационных сообщений. Если установлено значение True, сообщения будут выводиться.
+                # Нормализация дескриптора и запись его в массив descriptors_array
+                descriptors_array[descriptor_count, :] = (
+                    current_descriptor / np.linalg.norm(current_descriptor)
+                )
 
-    Returns:
-        - tuple: Кортеж из двух элементов:
-            - numpy.ndarray: Массив дескрипторов SIFT.
-            - numpy.ndarray: Массив меток изображений.
-    """
+                # Присвоение метки i для текущего дескриптора в массиве labels_array
+                labels_array[descriptor_count] = i
+                descriptor_count += 1
 
-    # Создание объекта для извлечения дескрипторов SIFT
-    feature_extractor = cv2.SIFT_create()
+        # Обрезка массивов дескрипторов и меток до фактического размера
+        extracted_descriptors = descriptors_array[0:descriptor_count, :]
+        extracted_labels = labels_array[0:descriptor_count]
 
-    # Инициализация переменных для хранения дескрипторов и меток
-    descriptor_count = 0
-    descriptors_array = np.zeros((10000000, 128))
-    labels_array = np.zeros((10000000,))
-
-    # Получение списка путей к изображениям в указанной директории
-    image_paths = scan_directory(dataset_path)
-    image_full_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_paths))
-
-    # Получение количества изображений в директории
-    images_count = len(image_full_paths)
-
-    # Вывод списка путей к изображениям, если установлен флаг echo
-    color_print("log", "log", image_full_paths, True) if echo else None
-
-    # Извлечение дескрипторов SIFT из каждого изображения
-    for i in range(images_count):
-        image = load_image(image_full_paths[i], echo)
-        image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        keypoints, descriptors = feature_extractor.detectAndCompute(image_gray, None)
-        current_descriptors_count = descriptors.shape[0]
-
-        # Цикл для обработки каждого дескриптора
-        for j in range(current_descriptors_count):
-            # Получение j-го дескриптора из общего массива дескрипторов
-            current_descriptor = descriptors[j, :]
-            # Нормализация дескриптора и запись его в массив descriptors_array
-            descriptors_array[descriptor_count, :] = (
-                current_descriptor / np.linalg.norm(current_descriptor)
-            )
-            # Присвоение метки i для текущего дескриптора в массиве labels_array
-            labels_array[descriptor_count] = i
-            # Увеличение счетчика дескрипторов
-            descriptor_count += 1
-
-        # Вывод сообщения о количестве извлеченных дескрипторов, если установлен флаг echo
-        if echo:
-            color_print(
-                "done",
-                "done",
-                f"{str(current_descriptors_count)} дескрипторов было извлечено.",
-                True,
-            )
-
-    # Обрезка массивов дескрипторов и меток до фактического размера
-    extracted_descriptors = descriptors_array[0:descriptor_count, :]
-    extracted_labels = labels_array[0:descriptor_count]
-
-    # Вывод сообщения о количестве извлеченных дескрипторов, если установлен флаг echo
-    if echo:
         color_print(
             "done",
             "done",
-            f"Количество дескрипторов SIFT в {str(images_count)} изображениях: {str(descriptor_count)}",
-            True,
+            f"Количество дескрипторов SIFT в {str(dataset.image_count)} изображениях: {str(descriptor_count)}",
         )
 
-    return extracted_descriptors, extracted_labels
+        dataset.descriptors = extracted_descriptors
+        dataset.descriptors_labels = extracted_labels
+
+        return extracted_descriptors, extracted_labels
+
+    def find_similar_image(self, target_image: Image, dataset: Dataset) -> Image:
+        """
+        Находит наиболее похожее изображение для указанного с помощью дескрипторов SIFT.
+
+        Parameters:
+            - target_image (Image): Объект целевого изображения (для поиска похожих на него).
+            - dataset (Dataset): Объект датасета (для поиска схожих в нём).
+
+        Returns:
+            - Image: Метка наиболее похожего изображения.
+        """
+
+        # Получение индекса целевого изображения и индексов изображений из других классов
+        target_image_index = dataset.filenames.index(target_image.filename)
+
+        same_class_indices = np.where(dataset.descriptors_labels == target_image_index)[
+            0
+        ]
+        different_class_indices = np.where(
+            dataset.descriptors_labels != target_image_index
+        )[0]
+
+        # Выделение дескрипторов целевого изображения и изображений других классов
+        target_descriptors = dataset.descriptors[same_class_indices, :]
+        other_descriptors = dataset.descriptors[different_class_indices, :]
+        other_labels = dataset.descriptors_labels[different_class_indices]
+
+        # Вычисление попарного скалярного произведения между дескрипторами тестового и других изображений
+        dot_products = np.dot(other_descriptors, target_descriptors.T)
+
+        # Получение количества дескрипторов тестового изображения
+        num_test_descriptors = target_descriptors.shape[0]
+
+        # Создание массивов для хранения максимальных значений скалярного произведения и меток изображений
+        max_dot_products = np.zeros((num_test_descriptors,))
+        corresponding_labels = []
+
+        # Выбор наиболее похожего изображения на основе скалярного произведения
+        for k in range(num_test_descriptors):
+            dot_product_values = dot_products[:, k]
+            max_value = dot_product_values.max()
+            max_dot_products[k] = max_value
+            max_index = np.where(dot_product_values == max_value)
+            corresponding_labels.append(other_labels[max_index[0]])
+
+        # Определение наиболее часто встречающейся метки среди изображений с высокой похожестью
+        high_similarity_indices = np.where(max_dot_products > 0.9)
+        most_common_label = stats.mode(
+            np.array(corresponding_labels)[high_similarity_indices]
+        )
+
+        most_similar_index = int(most_common_label.mode[0])
+
+        return dataset.images[most_similar_index]
+
+    def visualize_similar_images(self, target_image: Image, dataset: Dataset):
+        """
+        Находит и визуализирует целевое и наиболее похожее изображения.
+
+        Parameters:
+            - target_image (Image): Объект изображения класса Image.
+            - dataset (Dataset): Объект датасета класса Dataset.
+        """
+
+        img = self._read_image_as_rgb(target_image)
+
+        plt.imshow(img, cmap="gray")
+        plt.axis("off")
+        plt.show()
+        print(" ")
+
+        ifound = self.find_similar_image(target_image, dataset)
+        similar_image = self._read_image_as_rgb(ifound)
+
+        color_print(
+            "done",
+            "done",
+            f"Для изображения {target_image.filename}, наиболее похожее изображение: {ifound.filename}.",
+        )
+
+        plt.imshow(similar_image, cmap="gray")
+        plt.axis("off")
+        plt.show()
+
+    def _read_image_as_rgb(self, image: Image) -> np.ndarray:
+        color_print("create", "create", f"Загружаем изображение {image.filename}")
+
+        rgb_image = cv2.cvtColor(image.read(), cv2.COLOR_BGR2RGB)
+
+        new_width = 512
+        new_height = int(image.height * (new_width / image.width))
+
+        resized_image = cv2.resize(rgb_image, (new_width, new_height))
+
+        return resized_image
 
 
 # ==================================================================================================================================
 
-
-def find_similar_image(
-    test_image_index: int, descriptors_array: np.ndarray, labels_array: np.ndarray
-) -> int:
-    """
-    Находит наиболее похожее изображение на тестовом изображении с помощью дескрипторов SIFT.
-
-    Parameters:
-        - test_image_index (int): Индекс тестового изображения.
-        - descriptors_array (numpy.ndarray): Массив дескрипторов SIFT.
-        - labels_array (numpy.ndarray): Массив меток изображений.
-
-    Returns:
-        - int: Индекс наиболее похожего изображения.
-
-    TODO: В SIFT_test.ipynb пофиксили функцию, применить тот же фикс сюда.
-    """
-
-    # Определение индекса тестового изображения и индексов изображений из других классов
-    test_index = test_image_index
-    same_class_indices = np.where(labels_array == test_index)[0]
-    different_class_indices = np.where(labels_array != test_index)[0]
-
-    # Выделение дескрипторов тестового изображения и изображений других классов
-    test_descriptors = descriptors_array[same_class_indices, :]
-    other_descriptors = descriptors_array[different_class_indices, :]
-    other_labels = labels_array[different_class_indices]
-
-    # Вычисление попарного скалярного произведения между дескрипторами тестового и других изображений
-    dot_products = np.dot(other_descriptors, test_descriptors.T)
-
-    # Получение количества дескрипторов тестового изображения
-    num_test_descriptors = test_descriptors.shape[0]
-
-    # Создание массивов для хранения максимальных значений скалярного произведения и меток изображений
-    max_dot_products = np.zeros((num_test_descriptors,))
-    corresponding_labels = np.zeros((num_test_descriptors,))
-
-    # Выбор наиболее похожего изображения на основе скалярного произведения
-    for k in range(num_test_descriptors):
-        dot_product_values = dot_products[:, k]
-        max_value = dot_product_values.max()
-        max_dot_products[k] = max_value
-        max_index = np.where(dot_product_values == max_value)
-        corresponding_labels[k] = other_labels[max_index]
-
-    # Определение наиболее часто встречающейся метки среди изображений с высокой похожестью
-    high_similarity_indices = np.where(max_dot_products > 0.9)
-    most_common_label = stats.mode(corresponding_labels[high_similarity_indices])
-    most_similar_index = int(most_common_label[0])
-
-    return most_similar_index
-
-
-# ==================================================================================================================================
-
-
-def visualize_similar_images(
-    itest: int, X: np.ndarray, y: np.ndarray, image_full_paths: list
-):
-    """
-    Визуализирует тестовое и наиболее похожее изображения.
-
-    Parameters:
-        - itest (int): Индекс тестового изображения.
-        - X (numpy.ndarray): Массив дескрипторов SIFT.
-        - y (numpy.ndarray): Массив меток изображений.
-        - image_full_paths (list): Список полных путей к изображениям.
-    """
-
-    # Нахождение наиболее похожего изображения на тестовом изображении
-    ifound = find_similar_image(itest, X, y)
-
-    # Загрузка и визуализация тестового изображения
-    test_image = load_image(image_full_paths[itest], True)
-
-    color_print("status", "status", f"Тестовое изображение: {str(itest)}", True)
-
-    plt.imshow(test_image, cmap="gray")
-    plt.axis("off")
-    plt.show()
-    print(" ")
-
-    # Загрузка и визуализация наиболее похожего изображения
-    similar_image = load_image(image_full_paths[ifound], True)
-
-    color_print(
-        "done",
-        "done",
-        f"Для изображения {str(itest)}, наиболее похожее изображение: {str(ifound)}.",
-        True,
-    )
-
-    plt.imshow(similar_image, cmap="gray")
-    plt.axis("off")
-    plt.show()
-
-    print("--------------------------------------------------")
-
-
-# ==================================================================================================================================
-
-r"""
-WARNING: На данный момент визуализируется только одно изображение, после чего надо перезапускать весь код и заново собирать все дескрипторы.
-
-TODO: Сделать для функции scan_directory флаг для возвращения полных или неполных путей в зависимости от выбора.
-
-TODO: Оформить всё это в виде класса с сохранением всех дескрипторов и функциями для отображения результатов.
-
-FIXME: Убрать "RuntimeWarning" в common.metrics для метода PSNR.
-
-FIXME: После вывода общего кол-ва дескрипторов выводится предупреждение: 
-[V] Количество дескрипторов SIFT в 322 изображениях: 318017c:\Users\sharj\Desktop\Учёба\visdatcompy\tests\sift_tools.py:167: DeprecationWarning: Conversion of an array with ndim > 0 to a scalar is deprecated, and will error in future. Ensure you extract a single element from your array before performing this operation. (Deprecated NumPy 1.25.)
-corresponding_labels[k] = other_labels[max_index]
-"""
 
 if __name__ == "__main__":
-    # Определение пути к директории с изображениями
-    dataset_path = "datasets/Google Landmarks v2/test_500"
+    # Создаём два объекта с датасетами
+    dataset1 = Dataset(r"datasets\small_drone_test_compressed")
+    dataset2 = Dataset(r"datasets\small_drone_test_compressed")
 
-    time_start = time.time()
+    # Создаём объект класса SIFT для работы с двумя датасетами:
+    sift = SIFT(dataset1, dataset2)
 
-    # Извлечение дескрипторов SIFT из изображений
-    X, y = get_descriptors(dataset_path, echo=True)
+    # Получаем дескрипторы для каждого датасета (они записываются в объекты Dataset)
+    sift.get_descriptors(dataset1)
+    sift.get_descriptors(dataset2)
 
-    time_end = time.time()
+    # Получаем объект изображения по названию
+    my_image = dataset1.get_image("2_2.jpg")
+    # Получаем изображение схожее с нашим из указанного датасета
+    new_image: Image = sift.find_similar_image(my_image, dataset2)
 
-    color_print(
-        "log",
-        "log",
-        f"Время извлечения дескриптеров SIFT из 500 изображений: {time_end - time_start} секунд.",
-    )
+    # Визуализируем оба изображения для визуальной оценки
+    my_image.visualize()
+    new_image.visualize()
 
-    # Получение списка путей к изображениям в директории
-    image_paths = scan_directory(dataset_path)
-
-    # Формирование полных путей к изображениям
-    image_full_paths = list(map(lambda x: os.path.join(x[0], x[1]), image_paths))
-
-    time_start = time.time()
-
-    # Визуализация тестового изображения и его наиболее похожего изображения
-    visualize_similar_images(0, X, y, image_full_paths)
-
-    time_end = time.time()
-
-    color_print(
-        "log",
-        "log",
-        f"Время поиска совпадения для 1 изображения из 500 изображений: {time_end - time_start} секунд.",
-    )
+    # Либо выполняем более простую функцию для поиска и отображения
+    sift.visualize_similar_images(my_image, dataset2)

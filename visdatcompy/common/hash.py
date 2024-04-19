@@ -1,16 +1,18 @@
 import cv2
 import pandas as pd
 
-from visdatcompy.common.utils import color_print, get_time
 from visdatcompy.common.image_handler import Dataset
+from visdatcompy.common.utils import color_print, get_time
 
+
+__all__ = ["HashHandler"]
 
 # ==================================================================================================================================
-# |                                                           HASH HANDLER                                                         |
+# |                                                               HASH                                                             |
 # ==================================================================================================================================
 
 
-class HashHandler:
+class Hash:
     def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
         """
         Класс для сравнения изображений с помощью хэшей.
@@ -192,25 +194,28 @@ class HashHandler:
 
 
 if __name__ == "__main__":
-    dataset1 = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
-    dataset2 = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\cows")
+    # Создаём два объекта класса Dataset
+    dataset1 = Dataset(r"datasets\cows")
+    dataset2 = Dataset(r"datasets\cows")
 
-    Hashes = HashHandler(dataset1, dataset2)
+    # Создаём объект класса Hash для сравнения двух датасетов
+    Hash = HashHandler(dataset1, dataset2)
 
+    # Находим схожие изображения с замером времени
     color_print("log", "log", "AverageHash:")
-    get_time(Hashes.find_similars)("average", to_csv=True)
+    get_time(Hash.find_similars)("average", to_csv=True)
 
     color_print("log", "log", "PHash:")
-    get_time(Hashes.find_similars)("p", to_csv=True)
+    get_time(Hash.find_similars)("p", to_csv=True)
 
     color_print("log", "log", "MarrHildrethHash:")
-    get_time(Hashes.find_similars)("marr_hildreth", to_csv=True)
+    get_time(Hash.find_similars)("marr_hildreth", to_csv=True)
 
     color_print("log", "log", "RadialVarianceHash:")
-    get_time(Hashes.find_similars)("radial_variance", to_csv=True)
+    get_time(Hash.find_similars)("radial_variance", to_csv=True)
 
     color_print("log", "log", "BlockMeanHash:")
-    get_time(Hashes.find_similars)("block_mean", to_csv=True)
+    get_time(Hash.find_similars)("block_mean", to_csv=True)
 
     color_print("log", "log", "ColorMomentHash:")
-    get_time(Hashes.find_similars)("color_moment", to_csv=True)
+    get_time(Hash.find_similars)("color_moment", to_csv=True)

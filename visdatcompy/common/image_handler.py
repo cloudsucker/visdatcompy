@@ -4,9 +4,11 @@ import numpy as np
 import pandas as pd
 from PIL.ExifTags import TAGS
 from PIL import Image as PIL_Image
-from IPython.display import display
 
 from visdatcompy.common.utils import color_print
+
+
+__all__ = ["Image", "Dataset"]
 
 
 # ==================================================================================================================================
@@ -39,6 +41,7 @@ class Image(object):
 
     def read(self):
         image = cv2.imread(self.path)
+        self.height, self.width, self.channel = image.shape
 
         if image is None:
             color_print("fail", "fail", f"Ошибка чтения изображения: {self.image_name}")
@@ -47,7 +50,8 @@ class Image(object):
 
     def read_and_resize(self):
         """
-        Читает изображение и возвращает его в виде одномерного NumPy массива.
+        Читает изображение, изменяет его размер на 512x512 и возвращает
+        его в виде одномерного NumPy массива.
 
         Returns:
             - img_array: NumPy-массив открытого изображения.
@@ -60,14 +64,14 @@ class Image(object):
         return image_array.flatten()
 
     def visualize(self):
-        image = self.read_image()
+        image = self.read()
 
         new_width = 800
         new_height = 600
 
         resized_image = cv2.resize(image, (new_width, new_height))
 
-        cv2.imshow(self.image_name, resized_image)
+        cv2.imshow(self.filename, resized_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
@@ -116,40 +120,55 @@ class Dataset(object):
             - dataset_path: путь к датасету.
 
         Attributes:
-            - dataset_path: путь к датасету.
-            - dataset_name: название датасета (имя папки).
+            - path: путь к датасету.
+            - name: название датасета (имя папки).
             - images: список с объектами изображений (объектов класса Image).
             - image_generator: генератор для получения объектов изображений по одному.
-            - dataset_image_count: кол-во найденных изображений в датасете.
+            - image_count: кол-во найденных изображений в датасете.
         """
 
-        self.dataset_path = dataset_path
-        self.dataset_name = os.path.basename(self.dataset_path)
+        self.path = dataset_path
+        self.name = os.path.basename(self.path)
 
-        self.images: list[Image] = self._get_images()
+        self.images: list[Image]
+        self.filenames, self.images = self._get_images()
         self.image_generator = self._image_generator()
 
-        self.dataset_image_count = len(self.images)
+        self.image_count = len(self.images)
 
     def info(self):
         """
         Выводит основную информацию об объекте класса и его атрибутах:
-            - dataset_path: Путь к датасету.
-            - dataset_image_count: Количество полученых изображений.
+            - path: Путь к датасету.
+            - image_count: Количество полученых изображений.
         """
 
         color_print("done", "done", "Dataset Information:")
 
         color_print("status", "log", "Название датасета:")
-        color_print("none", "status", self.dataset_name, False)
+        color_print("none", "status", self.name, False)
 
         color_print("status", "log", "Количество изображений:")
-        color_print("none", "create", self.dataset_image_count, False)
+        color_print("none", "create", self.image_count, False)
 
         color_print("status", "log", "Путь к датасету:")
-        color_print("none", "status", self.dataset_path, False)
+        color_print("none", "status", self.path, False)
 
         print("\n")
+
+    def get_image(self, filename: str) -> Image:
+        """
+        Возвращает объект изображения по названию файла.
+
+        Parameters:
+            - filename (str): Имя изображения с его расширением.
+
+        Returns:
+            - Image: объект изображения с указаным именем файла.
+        """
+
+        image_index = self.filenames.index(filename)
+        return self.images[image_index]
 
     def get_exif_data(self) -> list[str]:
         """
@@ -178,13 +197,21 @@ class Dataset(object):
         self.exif_data = exif_df
 
     def _get_images(self):
+        filenames = []
         images = []
 
-        for image_name in os.listdir(self.dataset_path):
-            image = Image(os.path.join(self.dataset_path, image_name))
+        if os.path.isdir(self.path):
+            for image_name in os.listdir(self.path):
+                image = Image(os.path.join(self.path, image_name))
+                filenames.append(image.filename)
+                images.append(image)
+
+        elif os.path.isfile(self.path):
+            image = Image(self.path)
+            filenames.append(image.filename)
             images.append(image)
 
-        return images
+        return filenames, images
 
     def _image_generator(self):
         """
@@ -202,13 +229,19 @@ class Dataset(object):
 
 
 if __name__ == "__main__":
-    # Тест класса Image для работы с одним изображением:
-    img = Image(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\drone\000.jpg")
-    # img.info()
+    # Создаём объект класса Image для работы с одним изображением:
+    img = Image(r"datasets\drone\000.jpg")
 
-    # Тест класса Dataset для работы с датасетом.
-    dataset = Dataset(r"C:\Users\sharj\Desktop\STUDY\visdatcompy_datasets\drone")
-    # dataset.info()
-    dataset.get_exif_data()
+    # Выводим информацию об изображении и открываем его
+    img.info()
+    img.visualize()
 
-    display(dataset.exif_data)
+    # Создаём объект класса Dataset для работы с датасетом.
+    dataset = Dataset(r"datasets\drone")
+
+    # Выводим информацию о датасете
+    dataset.info()
+
+    # Получаем объект изображения из датасета по имени файла
+    # и считываем его сжимая до 512x512
+    flatten_image = dataset.get_image("000.jpg").read_and_resize()
