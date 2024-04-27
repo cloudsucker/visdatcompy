@@ -190,35 +190,35 @@ class Metrics:
 # ==================================================================================================================================
 
 if __name__ == "__main__":
-    dataset1 = Dataset(r"datasets\cows")
-    dataset2 = Dataset(r"datasets\cows")
+    dataset1 = Dataset(r"datasets\small_drone_test_compressed")
+    dataset2 = Dataset(r"datasets\small_drone_test_compressed")
 
-    metrics = Metrics(dataset1, dataset2)
+    metrics = Metrics(dataset1, dataset2, r"results/metrics_results")
 
-    color_print("log", "log", "Pixel 2 Pixel:")
-    pix2pix_result = get_time(metrics.pix2pix)(to_csv=True)
-    metrics.show(pix2pix_result)
+    # color_print("log", "log", "Pixel 2 Pixel:")
+    # pix2pix_result = get_time(metrics.pix2pix)(to_csv=True)
+    # metrics.show(pix2pix_result)
 
     color_print("log", "log", "MAE:")
-    mae_result = get_time(metrics.mae)()
+    mae_result = get_time(metrics.mae)(echo=True, to_csv=True)
     metrics.show(mae_result)
 
     color_print("log", "log", "MSE:")
-    mse_result = get_time(metrics.mse)()
+    mse_result = get_time(metrics.mse)(echo=True, to_csv=True)
     metrics.show(mse_result)
 
     color_print("log", "log", "NRMSE:")
-    nrmse_result = get_time(metrics.nrmse)()
+    nrmse_result = get_time(metrics.nrmse)(echo=True, to_csv=True)
     metrics.show(nrmse_result)
 
     color_print("log", "log", "SSIM:")
-    ssim_result = get_time(metrics.ssim)()
+    ssim_result = get_time(metrics.ssim)(echo=True, to_csv=True)
     metrics.show(ssim_result)
 
     color_print("log", "log", "PSNR:")
-    psnr_result = get_time(metrics.psnr)()
+    psnr_result = get_time(metrics.psnr)(echo=True, to_csv=True)
     metrics.show(psnr_result)
 
     color_print("log", "log", "NMI:")
-    nmi_result = get_time(metrics.nmi)()
+    nmi_result = get_time(metrics.nmi)(echo=True, to_csv=True)
     metrics.show(nmi_result)

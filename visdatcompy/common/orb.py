@@ -7,18 +7,18 @@ from visdatcompy.common.utils import color_print
 from visdatcompy.common.image_handler import Image, Dataset
 
 
-__all__ = ["SIFT"]
+__all__ = ["ORB"]
 
 
 # ==================================================================================================================================
-# |                                                             SIFT TOOLS                                                         |
+# |                                                              ORB TOOLS                                                         |
 # ==================================================================================================================================
 
 
-class SIFT:
+class ORB(object):
     def __init__(self, dataset1: Dataset, dataset2: Dataset):
         """
-        Класс для поиска схожих изображений с помощью SIFT.
+        Класс для поиска схожих изображений с помощью ORB.
 
         Attributes:
             - Dataset1 (Dataset): Объект класса Dataset.
@@ -33,42 +33,40 @@ class SIFT:
             схожие изображения и визуализирует найденную пару.
         """
 
-        self.Dataset1 = dataset1
-        self.Dataset2 = dataset2 if dataset1.path != dataset2.path else dataset1
+        self.dataset1 = dataset1
+        self.dataset2 = dataset2 if dataset2.path != dataset1.path else dataset1
 
     def extract_features(self, dataset: Dataset) -> tuple:
         """
         Извлекает дескрипторы и метки из изображений в датасете. Присваивает их
-        объекту класса Dataset.
+        полученному объекту класса Dataset.
 
         Parameters:
             - dataset (Dataset): Объект датасета класса Dataset.
 
         Returns:
             - tuple: Кортеж из двух элементов:
-                - numpy.ndarray: Массив дескрипторов SIFT.
+                - numpy.ndarray: Массив дескрипторов ORB.
                 - numpy.ndarray: Массив меток изображений.
         """
 
-        # Создание объекта для извлечения дескрипторов SIFT
-        feature_extractor = cv2.SIFT_create()
+        orb = cv2.ORB_create()
 
-        # Инициализация переменных для хранения дескрипторов и меток
         descriptor_count = 0
-        descriptors_array = np.zeros((10000000, 128))
+        descriptors_array = np.zeros((10000000, 32))
         labels_array = np.zeros((10000000,))
 
-        # Извлечение дескрипторов SIFT из каждого изображения
         for i, image in enumerate(dataset.images):
-
             img = self._read_image_as_rgb(image)
             img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-            _, descriptors = feature_extractor.detectAndCompute(img_gray, None)
-            current_descriptors_count = descriptors.shape[0]
+            kp = orb.detect(img_gray, None)
+            kp, des = orb.compute(img_gray, kp)
+
+            current_descriptors_count = des.shape[0]
 
             for desc in range(current_descriptors_count):
-                current_descriptor = descriptors[desc, :]
+                current_descriptor = des[desc, :]
 
                 # Нормализация дескриптора и запись его в массив descriptors_array
                 descriptors_array[descriptor_count, :] = (
@@ -86,17 +84,17 @@ class SIFT:
         color_print(
             "done",
             "done",
-            f"Количество дескрипторов SIFT в {str(dataset.image_count)} изображениях: {str(descriptor_count)}",
+            f"Количество дескрипторов ORB в {str(dataset.image_count)} изображениях: {str(descriptor_count)}",
         )
 
-        dataset.sift_descriptors = extracted_descriptors
-        dataset.sift_descriptors_labels = extracted_labels
+        dataset.orb_descriptors = extracted_descriptors
+        dataset.orb_descriptors_labels = extracted_labels
 
         return extracted_descriptors, extracted_labels
 
     def find_similar_image(self, target_image: Image, dataset: Dataset) -> Image:
         """
-        Находит наиболее похожее изображение для указанного с помощью дескрипторов SIFT.
+        Находит наиболее похожее изображение для указанного с помощью дескрипторов ORB.
 
         Parameters:
             - target_image (Image): Объект целевого изображения (для поиска похожих на него).
@@ -110,16 +108,16 @@ class SIFT:
         target_image_index = dataset.filenames.index(target_image.filename)
 
         same_class_indices = np.where(
-            dataset.sift_descriptors_labels == target_image_index
+            dataset.orb_descriptors_labels == target_image_index
         )[0]
         different_class_indices = np.where(
-            dataset.sift_descriptors_labels != target_image_index
+            dataset.orb_descriptors_labels != target_image_index
         )[0]
 
         # Выделение дескрипторов целевого изображения и изображений других классов
-        target_descriptors = dataset.sift_descriptors[same_class_indices, :]
-        other_descriptors = dataset.sift_descriptors[different_class_indices, :]
-        other_labels = dataset.sift_descriptors_labels[different_class_indices]
+        target_descriptors = dataset.orb_descriptors[same_class_indices, :]
+        other_descriptors = dataset.orb_descriptors[different_class_indices, :]
+        other_labels = dataset.orb_descriptors_labels[different_class_indices]
 
         # Вычисление попарного скалярного произведения между дескрипторами тестового и других изображений
         dot_products = np.dot(other_descriptors, target_descriptors.T)
@@ -199,21 +197,21 @@ if __name__ == "__main__":
     dataset1 = Dataset(r"datasets\small_drone_test_compressed")
     dataset2 = Dataset(r"datasets\small_drone_test_compressed")
 
-    # Создаём объект класса SIFT для работы с двумя датасетами:
-    sift = SIFT(dataset1, dataset2)
+    # Создаём объект класса ORB для работы с двумя датасетами:
+    orb = ORB(dataset1, dataset2)
 
-    # Извлекаем дескрипторы и метки для каждого датасета (они записываются в объекты Dataset)
-    sift.extract_features(dataset1)
-    sift.extract_features(dataset2)
+    # Получаем дескрипторы для каждого датасета (они записываются в объекты Dataset)
+    orb.extract_features(dataset1)
+    orb.extract_features(dataset2)
 
     # Получаем объект изображения по названию
     my_image = dataset1.get_image("2_2.jpg")
     # Получаем изображение схожее с нашим из указанного датасета
-    new_image: Image = sift.find_similar_image(my_image, dataset2)
+    new_image: Image = orb.find_similar_image(my_image, dataset2)
 
     # Визуализируем оба изображения для визуальной оценки
     my_image.visualize()
     new_image.visualize()
 
     # Либо выполняем более простую функцию для поиска и отображения
-    sift.visualize_similar_images(my_image, dataset2)
+    orb.visualize_similar_images(my_image, dataset2)

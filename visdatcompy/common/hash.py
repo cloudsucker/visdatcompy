@@ -5,14 +5,14 @@ from visdatcompy.common.image_handler import Dataset
 from visdatcompy.common.utils import color_print, get_time
 
 
-__all__ = ["HashHandler"]
+__all__ = ["Hash"]
 
 # ==================================================================================================================================
 # |                                                               HASH                                                             |
 # ==================================================================================================================================
 
 
-class Hash:
+class Hash(object):
     def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
         """
         Класс для сравнения изображений с помощью хэшей.
@@ -198,8 +198,8 @@ if __name__ == "__main__":
     dataset1 = Dataset(r"datasets\cows")
     dataset2 = Dataset(r"datasets\cows")
 
-    # Создаём объект класса Hash для сравнения двух датасетов
-    Hash = HashHandler(dataset1, dataset2)
+    # Создаём объект класса HASH для сравнения двух датасетов
+    hash = Hash(dataset1, dataset2)
 
     # Находим схожие изображения с замером времени
     color_print("log", "log", "AverageHash:")
