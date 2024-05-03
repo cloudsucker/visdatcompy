@@ -94,7 +94,11 @@ class Image(object):
                         tag_name = TAGS.get(tag, tag)
                         exif_dict[tag_name] = value
                 else:
-                    color_print("fail", "fail", "exif-данные не найдены.")
+                    color_print(
+                        "warning",
+                        "warning",
+                        f"Метаданные изображения '{self.filename}' не найдены.",
+                    )
 
                     return None
 
@@ -127,14 +131,18 @@ class Dataset(object):
             - image_count: кол-во найденных изображений в датасете.
         """
 
-        self.path = dataset_path
-        self.name = os.path.basename(self.path)
+        try:
+            self.path = dataset_path
+            self.name = os.path.basename(self.path)
 
-        self.images: list[Image]
-        self.filenames, self.images = self._get_images()
-        self.image_generator = self._image_generator()
+            self.images: list[Image]
+            self.filenames, self.images = self._get_images()
+            self.image_generator = self._image_generator()
 
-        self.image_count = len(self.images)
+            self.image_count = len(self.images)
+
+        except Exception as e:
+            color_print("fail", "fail", f"Ошибка: {e}")
 
     def info(self):
         """
@@ -180,21 +188,29 @@ class Dataset(object):
 
         exif_data = []
 
-        for image in self.images:
-            image_exif_data = image.get_exif_data()
+        try:
+            for image in self.images:
+                image_exif_data = image.get_exif_data()
 
-            if image_exif_data is not None:
-                filename, file_extension = os.path.splitext(str(image.filename))
-                image_exif_data.update(
-                    {"Filename": filename, "FileExtension": file_extension}
-                )
+                if image_exif_data is not None:
+                    filename, file_extension = os.path.splitext(str(image.filename))
+                    image_exif_data.update(
+                        {"Filename": filename, "FileExtension": file_extension}
+                    )
 
-                exif_data.append(image_exif_data)
+                    exif_data.append(image_exif_data)
 
-        exif_df = pd.DataFrame(data=exif_data)
-        exif_df = exif_df.drop(columns="MakerNote")
+            exif_df = pd.DataFrame(data=exif_data)
+            exif_df = exif_df.drop(columns="MakerNote")
 
-        self.exif_data = exif_df
+            self.exif_data = exif_df
+
+        except KeyError:
+            color_print(
+                "warning",
+                "warning",
+                f"Метаданные изображений в датасете '{self.name}' не обнаружены.",
+            )
 
     def _get_images(self):
         filenames = []

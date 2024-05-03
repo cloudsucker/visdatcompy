@@ -177,7 +177,7 @@ class ORB(object):
         plt.show()
 
     def _read_image_as_rgb(self, image: Image) -> np.ndarray:
-        color_print("create", "create", f"Загружаем изображение {image.filename}")
+        color_print("create", "create", f"Чтение изображения: {image.filename}")
 
         rgb_image = cv2.cvtColor(image.read(), cv2.COLOR_BGR2RGB)
 

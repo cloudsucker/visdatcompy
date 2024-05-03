@@ -15,7 +15,7 @@ __all__ = ["Hash"]
 class Hash(object):
     def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
         """
-        Класс для сравнения изображений с помощью хэшей.
+        Класс для сравнения датасетов с помощью хэшей.
 
         Parameters:
             - Dataset1: объект класса Dataset с первым датасетом.

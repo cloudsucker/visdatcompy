@@ -18,6 +18,7 @@ colors = {
 }  # Цвета текста
 
 style = Style.BRIGHT
+reset = Style.RESET_ALL
 
 stamps = {
     "none": "",
@@ -99,7 +100,9 @@ def color_print(stamp: str, color: str, message: str, newline: bool = True) -> N
 
     to_new_line = "\n" if newline else " "
 
-    sys.stdout.write(f"{to_new_line}{style}{colors[color]}{stamps[stamp]}{message}")
+    sys.stdout.write(
+        f"{to_new_line}{style}{colors[color]}{stamps[stamp]}{message}{reset}"
+    )
 
 
 # ==================================================================================================================================

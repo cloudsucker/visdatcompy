@@ -195,9 +195,9 @@ if __name__ == "__main__":
 
     metrics = Metrics(dataset1, dataset2, r"results/metrics_results")
 
-    # color_print("log", "log", "Pixel 2 Pixel:")
-    # pix2pix_result = get_time(metrics.pix2pix)(to_csv=True)
-    # metrics.show(pix2pix_result)
+    color_print("log", "log", "Pixel 2 Pixel:")
+    pix2pix_result = get_time(metrics.pix2pix)(to_csv=True)
+    metrics.show(pix2pix_result)
 
     color_print("log", "log", "MAE:")
     mae_result = get_time(metrics.mae)(echo=True, to_csv=True)
