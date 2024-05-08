@@ -16,13 +16,13 @@ img.info()
 dts.info()
 
 > [V] Image Information:
-> [$] Название изображения: 000.jpg
+> [$] Название изображения: image.jpg
 > [$] Разрешение изображения: 6000 x 4000 x 3
 
 > [V] Dataset Information:
-> [%] Название датасета: drone
+> [%] Название датасета: dataset
 > [%] Количество изображений: 322
-> [%] Путь к датасету: datasets\drone
+> [%] Путь к датасету: datasets\dataset
 ```
 
 ## 😞 Проблема

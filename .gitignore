@@ -1,7 +1,6 @@
-static/logo.psd
 visdatcompy/__pycache__/
-visdatcompy/common/__pycache__/
-visdatcompy/research/__pycache__/
-visdatcompy/research/cows_dataset/
 visdatcompy.egg-info/
-datasets/
+research/__pycache__/
+static/logo.psd
+datasets/_main_drone/
+datasets/_main_cows/
