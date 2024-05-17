@@ -116,6 +116,18 @@ class Image(object):
 
         return exif_dict
 
+    def _read_image_as_rgb(self) -> np.ndarray:
+        color_print("create", "create", f"Чтение изображения: {self.filename}")
+
+        rgb_image = cv2.cvtColor(self.read(), cv2.COLOR_BGR2RGB)
+
+        new_width = 512
+        new_height = int(self.height * (new_width / self.width))
+
+        resized_image = cv2.resize(rgb_image, (new_width, new_height))
+
+        return resized_image
+
 
 # ==================================================================================================================================
 

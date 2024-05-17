@@ -24,7 +24,7 @@ __all__ = ["Metrics"]
 # FIXME: Убрать "RuntimeWarning" в common.metrics для метода PSNR.
 
 
-class Metrics:
+class Metrics(object):
     def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
         """
         Класс для сравнения двух датасетов по метрикам.
