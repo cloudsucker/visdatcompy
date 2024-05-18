@@ -13,16 +13,16 @@ __all__ = ["Hash"]
 
 
 class Hash(object):
+    """
+    Класс для сравнения датасетов с помощью хэшей.
+
+    Parameters:
+        - Dataset1: объект класса Dataset с первым датасетом.
+        - Dataset2: объект класса Dataset со вторым датасетом.
+        - results_path: путь для сохранения файлов .csv с результатами.
+    """
+
     def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
-        """
-        Класс для сравнения датасетов с помощью хэшей.
-
-        Parameters:
-            - Dataset1: объект класса Dataset с первым датасетом.
-            - Dataset2: объект класса Dataset со вторым датасетом.
-            - results_path: путь для сохранения файлов .csv с результатами.
-        """
-
         self.methods = {
             "average": cv2.img_hash.AverageHash_create(),
             "p": cv2.img_hash.PHash_create(),
@@ -123,7 +123,7 @@ class Hash(object):
         return_df: bool = True,
         to_csv: bool = False,
         echo: bool = False,
-    ):
+    ) -> pd.DataFrame:
         """
         Функция для создания тепловой матрицы двух датасетов на основе хэшей.
 
@@ -131,6 +131,9 @@ class Hash(object):
             - compare_method: метод сравнения.
             - to_csv (bool): опция экспорта результатов в csv файл.
             - echo (bool): логирование в консоль.
+
+        Returns:
+
 
         compare_methods:
             - "average": Рассчитывает хэш-значение на основе среднего значения пикселей,

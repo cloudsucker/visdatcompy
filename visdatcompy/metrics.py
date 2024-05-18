@@ -25,16 +25,16 @@ __all__ = ["Metrics"]
 
 
 class Metrics(object):
+    """
+    Класс для сравнения двух датасетов по метрикам.
+
+    Parameters:
+        - Dataset1 (Dataset): объект класса Dataset первого датасета.
+        - Dataset2 (Dataset): объект класса Dataset второго датасета.
+        - results_path (str): путь для сохранения файлов .csv с результатами.
+    """
+
     def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
-        """
-        Класс для сравнения двух датасетов по метрикам.
-
-        Parameters:
-            - Dataset1 (object): объект класса Dataset первого датасета.
-            - Dataset2 (object): объект класса Dataset второго датасета.
-            - results_path: путь для сохранения файлов .csv с результатами.
-        """
-
         self.methods = {
             "pix2pix": self.pix2pix,
             "mae": self.mae,
@@ -92,6 +92,7 @@ class Metrics(object):
         to_csv: bool = False,
         echo: bool = False,
     ) -> list[float]:
+
         ssim_partial = partial(ssim_skimage, win_size=3)
         ssim_partial.__name__ = "structural_similarity_index"
 
@@ -200,6 +201,9 @@ class Metrics(object):
 if __name__ == "__main__":
     dataset1 = Dataset("datasets/cows")
     dataset2 = Dataset("datasets/cows")
+
+    dataset1 = Dataset("datasets/metrics_analyze/1")
+    dataset2 = Dataset("datasets/metrics_analyze/2")
 
     metrics = Metrics(dataset1, dataset2, "results/metrics")
 

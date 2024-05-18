@@ -2,6 +2,8 @@
 visdatcompy/__pycache__/
 visdatcompy.egg-info/
 research/__pycache__/
+research/_metrics_analyse.ipynb
 static/logo.psd
 datasets/_main_drone/
 datasets/_main_cows/
+datasets/_metrics_analyse/

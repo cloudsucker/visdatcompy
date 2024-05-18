@@ -22,8 +22,8 @@ class FeatureExtractor(object):
         Класс для поиска схожих изображений с помощью SIFT, ORB и FAST.
 
         Attributes:
-            - Dataset1 (Dataset): Объект класса Dataset.
-            - Dataset2 (Dataset): Объект класса Dataset.
+            - dataset1 (Dataset): Объект класса Dataset.
+            - dataset2 (Dataset): Объект класса Dataset.
             - extractor (string): метод сравнения (sift, orb или fast).
 
         Methods:
