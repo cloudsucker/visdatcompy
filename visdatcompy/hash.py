@@ -2,7 +2,7 @@ import cv2
 import pandas as pd
 
 from visdatcompy.image_handler import Dataset
-from visdatcompy.utils import color_print, get_time
+from visdatcompy.utils import color_print
 
 
 __all__ = ["Hash"]
@@ -199,23 +199,8 @@ if __name__ == "__main__":
     dataset2 = Dataset("datasets/cows")
 
     # Создаём объект класса HASH для сравнения двух датасетов
-    hash = Hash(dataset1, dataset2, "results/hash")
+    hash = Hash(dataset1, dataset2)
 
-    # Находим схожие изображения с замером времени
-    color_print("log", "log", "AverageHash:")
-    get_time(hash.find_similars)("average", to_csv=True)
-
-    color_print("log", "log", "PHash:")
-    get_time(hash.find_similars)("p", to_csv=True)
-
-    color_print("log", "log", "MarrHildrethHash:")
-    get_time(hash.find_similars)("marr_hildreth", to_csv=True)
-
-    color_print("log", "log", "RadialVarianceHash:")
-    get_time(hash.find_similars)("radial_variance", to_csv=True)
-
-    color_print("log", "log", "BlockMeanHash:")
-    get_time(hash.find_similars)("block_mean", to_csv=True)
-
-    color_print("log", "log", "ColorMomentHash:")
-    get_time(hash.find_similars)("color_moment", to_csv=True)
+    # Находим схожие изображения
+    p_similars = hash.find_similars("p")
+    print(p_similars)

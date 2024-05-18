@@ -1,3 +1,4 @@
+.venv/
 visdatcompy/__pycache__/
 visdatcompy.egg-info/
 research/__pycache__/

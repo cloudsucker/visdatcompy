@@ -35,6 +35,16 @@ class Metrics(object):
             - results_path: путь для сохранения файлов .csv с результатами.
         """
 
+        self.methods = {
+            "pix2pix": self.pix2pix,
+            "mae": self.mae,
+            "mse": self.mse,
+            "nrmse": self.nrmse,
+            "ssim": self.ssim,
+            "psnr": self.psnr,
+            "nmi": self.nmi,
+        }
+
         self.Dataset1 = Dataset1
         self.Dataset2 = Dataset2
 
@@ -119,8 +129,6 @@ class Metrics(object):
             for first_image in self.Dataset1.images:
 
                 row = []
-
-                # Создаем список задач для обработки каждой пары изображений
                 futures = []
 
                 for second_image in self.Dataset2.images:

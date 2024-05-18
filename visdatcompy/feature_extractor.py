@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
-from scipy import stats
 import matplotlib.pyplot as plt
+from scipy import stats
+from typing import Dict
 
 from visdatcompy.utils import color_print
 from visdatcompy.image_handler import Image, Dataset
@@ -28,11 +29,19 @@ class FeatureExtractor(object):
         Methods:
             - extract_features(dataset: Dataset): Извлекает дескрипторы из датасета
             и помещает их в атрибуты датасета.
-            - find_similar_image(target_image: Image, dataset: Dataset): ищет схожие
-            изображения в датасете.
+            - find_similar_image(target_image: Image, dataset: Dataset): ищет схожее
+            изображение в датасете.
             - visualize_similar_images(target_image: Image, dataset: Dataset): ищет
             схожие изображения и визуализирует найденную пару.
         """
+
+        # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+        self.extractor_names = {
+            "sift": "sift",
+            "orb": "orb",
+            "fast": "fast",
+        }
 
         self.extractors = {
             "sift": cv2.SIFT_create(),
@@ -51,23 +60,74 @@ class FeatureExtractor(object):
         self.extractor_name = extractor
         self.extractor = self.extractors[extractor]
 
+        # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
         self.dataset1 = dataset1
-        self.dataset2 = dataset2 if dataset2.path != dataset1.path else dataset1
 
-    def extract_features(self, dataset: Dataset, echo: bool = True) -> tuple:
+        color_print("done", "done", "Извлечение дескрипторов")
+        color_print("status", "status", f"Датасет 1: {dataset1.name}")
+        self._extract_features_from_dataset(dataset1)
+
+        if dataset2.path != dataset1.path:
+            self.dataset2 = dataset2
+            print("\n")
+            color_print("status", "status", f"Датасет 2: {dataset2.name}")
+            self._extract_features_from_dataset(dataset2)
+
+        else:
+            self.dataset2 = dataset1
+            color_print("status", "status", f"Второй датасет дублирует первый.")
+            print("\n")
+
+        # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+        if self.extractor_name == "sift":
+            self.sift_similars: Dict[Image, Image] = {}
+        elif self.extractor_name == "orb":
+            self.orb_similars: Dict[Image, Image] = {}
+        elif self.extractor_name == "fast":
+            self.fast_similars: Dict[Image, Image] = {}
+
+    def find_similars(self) -> Dict[Image, Image]:
         """
-        Извлекает дескрипторы или метки из изображений в датасете. Присваивает их
-        объекту класса Dataset.
-
-        Parameters:
-            - dataset (Dataset): Объект датасета класса Dataset.
+        Находит схожие изображения для каждого изображения из первого датасета во втором датасете
+        и записывает их в словарь.
 
         Returns:
-            - tuple: Кортеж из двух элементов:
-                - numpy.ndarray: Массив дескрипторов.
-                - numpy.ndarray: Массив меток изображений.
+            - dict: Словарь, где ключи - объекты изображений из первого датасета,
+            а значения - объекты изображений из второго датасета, являющиеся схожими.
         """
 
+        similars_dict: Dict[Image, Image] = {}
+
+        for image in self.dataset1.images:
+            similar_image = self._find_similar_image(image, self.dataset2)
+            similars_dict[image] = similar_image
+
+        setattr(self, self.extractor_name + "_similars", similars_dict)
+
+        return similars_dict
+
+    def _extract_features_from_image(self, image: Image) -> np.ndarray:
+        img = image._read_image_as_rgb()
+        img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        kp = self.extractor.detect(img_gray, None)
+
+        if self.extractor_name != "fast":
+            kp, descriptors = self.extractor.compute(img_gray, kp)
+        else:
+            kp, descriptors = self.extractors["orb"].compute(img_gray, kp)
+
+        if descriptors is None:
+            return np.array(
+                []
+            )  # Возвращает пустой массив, если не удается получить дескрипторы
+
+        return descriptors
+
+    def _extract_features_from_dataset(
+        self, dataset: Dataset, echo: bool = True
+    ) -> tuple:
         # Инициализация переменных для хранения дескрипторов и меток
         descriptor_count = 0
         descriptors_array = np.zeros(self.desc_arr_shape)
@@ -113,47 +173,52 @@ class FeatureExtractor(object):
         setattr(dataset, self.extractor_name + "_descriptors", extracted_descriptors)
         setattr(dataset, self.extractor_name + "_descriptors_labels", extracted_labels)
 
-        return extracted_descriptors, extracted_labels
-
-    def find_similar_image(self, target_image: Image, dataset: Dataset) -> Image:
-        """
-        Находит наиболее похожее изображение из датасета среди других.
-
-        Parameters:
-            - target_image (Image): Объект целевого изображения (для поиска похожих на него).
-            - dataset (Dataset): Объект датасета (для поиска схожих в нём).
-
-        Returns:
-            - Image: Объект наиболее похожего изображения.
-        """
-
+    def _find_similar_image(self, target_image: Image, dataset: Dataset) -> Image:
         descriptors = getattr(dataset, self.extractor_name + "_descriptors")
         descriptors_labels = getattr(
             dataset, self.extractor_name + "_descriptors_labels"
         )
 
         try:
-            # Получение индекса целевого изображения и индексов изображений из других классов
-            target_image_index = dataset.filenames.index(target_image.filename)
+            # Попробуем найти индекс целевого изображения в датасете
+            target_image_index = dataset.images.index(target_image)
+
+            # Индексы дескрипторов из того же изображения
+            same_class_indices = np.where(descriptors_labels == target_image_index)[0]
+
+            # Индексы дескрипторов из других изображений
+            different_class_indices = np.where(
+                descriptors_labels != target_image_index
+            )[0]
+
+            # Дескрипторы целевого изображения
+            target_descriptors = descriptors[same_class_indices, :]
+
         except ValueError:
-            color_print("fail", "fail", "Датасет должен содержать целевое изображение.")
-            return False
+            # Если целевого изображения нет в датасете
+            target_descriptors = self._extract_features_from_image(target_image)
 
-        same_class_indices = np.where(descriptors_labels == target_image_index)[0]
-        different_class_indices = np.where(descriptors_labels != target_image_index)[0]
+            if target_descriptors is None or target_descriptors.size == 0:
+                color_print(
+                    "fail",
+                    "fail",
+                    "Не удалось извлечь дескрипторы из целевого изображения.",
+                )
+                return False
 
-        # Выделение дескрипторов целевого изображения и изображений других классов
-        target_descriptors = descriptors[same_class_indices, :]
+            different_class_indices = np.arange(len(descriptors_labels))
+
+        # Дескрипторы других изображений
         other_descriptors = descriptors[different_class_indices, :]
         other_labels = descriptors_labels[different_class_indices]
 
-        # Вычисление попарного скалярного произведения между дескрипторами тестового и других изображений
+        # Вычисление попарного скалярного произведения между дескрипторами целевого и других изображений
         dot_products = np.dot(other_descriptors, target_descriptors.T)
 
-        # Получение количества дескрипторов тестового изображения
+        # Количество дескрипторов целевого изображения
         num_test_descriptors = target_descriptors.shape[0]
 
-        # Создание массивов для хранения максимальных значений скалярного произведения и меток изображений
+        # Массивы для хранения максимальных значений скалярного произведения и меток изображений
         max_dot_products = np.zeros((num_test_descriptors,))
         corresponding_labels = []
 
@@ -163,59 +228,39 @@ class FeatureExtractor(object):
             max_value = dot_product_values.max()
             max_dot_products[k] = max_value
             max_index = np.where(dot_product_values == max_value)
-            corresponding_labels.append(other_labels[max_index[0]])
+            corresponding_labels.extend(other_labels[max_index[0]])
+
+        # Преобразование corresponding_labels в одномерный массив
+        corresponding_labels = np.array(corresponding_labels, dtype=int)
 
         # Определение наиболее часто встречающейся метки среди изображений с высокой похожестью
-        high_similarity_indices = np.where(max_dot_products > 0.9)
-        most_common_label = stats.mode(
-            np.array(corresponding_labels)[high_similarity_indices]
-        )
+        high_similarity_indices = np.where(max_dot_products > 0.9)[0]
 
-        most_similar_index = int(most_common_label.mode[0])
+        if high_similarity_indices.size > 0:
+            most_common_label = stats.mode(
+                corresponding_labels[high_similarity_indices]
+            )
+
+            if isinstance(most_common_label.mode, np.ndarray):
+                most_similar_index = int(most_common_label.mode[0])
+
+            else:
+                most_similar_index = int(most_common_label.mode)
+
+        else:
+            most_similar_index = corresponding_labels[np.argmax(max_dot_products)]
 
         return dataset.images[most_similar_index]
-
-    def visualize_similar_images(self, target_image: Image, dataset: Dataset):
-        """
-        Находит и визуализирует целевое и наиболее похожее изображения.
-
-        Parameters:
-            - target_image (Image): Объект изображения класса Image.
-            - dataset (Dataset): Объект датасета класса Dataset.
-        """
-
-        img = target_image._read_image_as_rgb()
-
-        plt.imshow(img, cmap="gray")
-        plt.axis("off")
-        plt.show()
-        print(" ")
-
-        ifound = self.find_similar_image(target_image, dataset)
-        similar_image = ifound._read_image_as_rgb()
-
-        color_print(
-            "done",
-            "done",
-            f"Для изображения {target_image.filename}, наиболее похожее изображение: {ifound.filename}.",
-        )
-
-        plt.imshow(similar_image, cmap="gray")
-        plt.axis("off")
-        plt.show()
 
 
 # ==================================================================================================================================
 
 
 if __name__ == "__main__":
-    dataset1 = Dataset("datasets/drone")
-    dataset2 = Dataset("datasets/drone")
+    dataset1 = Dataset("datasets/cows")
+    dataset2 = Dataset("datasets/cows_duplicates")
 
-    fext = FeatureExtractor(dataset1, dataset2, "fast")
+    fext = FeatureExtractor(dataset1, dataset2, "sift")
 
-    fext.extract_features(dataset2)
-
-    image = dataset2.get_image("0_1.jpg")
-
-    fext.visualize_similar_images(image, dataset2)
+    fext.find_similars()
+    print(fext.sift_similars)
