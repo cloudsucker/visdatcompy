@@ -116,6 +116,15 @@ class Image(object):
 
         return exif_dict
 
+    def _read_flatten(self):
+        image = cv2.imread(self.path)
+        self.height, self.width, self.channel = image.shape
+
+        if image is None:
+            color_print("fail", "fail", f"Ошибка чтения изображения: {self.filename}")
+
+        return image.flatten()
+
     def _read_image_as_rgb(self) -> np.ndarray:
         color_print("create", "create", f"Чтение изображения: {self.filename}")
 
@@ -195,6 +204,19 @@ class Dataset(object):
 
         image_index = self.filenames.index(filename)
         return self.images[image_index]
+
+    def delete_image(self, image: Image):
+        if image.filename in self.filenames:
+            print("\nDeleting image: ", image.filename)
+            print("\nДо удаления: ", self.filenames)
+
+            image_index = self.filenames.index(image.filename)
+
+            del self.images[image_index]
+            del self.filenames[image_index]
+            self.image_count -= 1
+
+            print("\nПосле удаления: ", self.filenames)
 
     def get_exif_data(self) -> list[str]:
         """

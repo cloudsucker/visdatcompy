@@ -11,7 +11,7 @@ from sklearn.metrics import mean_absolute_error as mae_skimage
 from skimage.metrics import normalized_mutual_information as nmi_skimage
 
 from visdatcompy.image_handler import Dataset
-from visdatcompy.utils import get_time, color_print
+from visdatcompy.utils import color_print
 
 
 __all__ = ["Metrics"]
@@ -32,6 +32,35 @@ class Metrics(object):
         - Dataset1 (Dataset): объект класса Dataset первого датасета.
         - Dataset2 (Dataset): объект класса Dataset второго датасета.
         - results_path (str): путь для сохранения файлов .csv с результатами.
+
+    Метрики:
+    --------
+    | Метрика  | Диапазон значений | Описание                                        |
+    | -------- | ----------------- | ----------------------------------------------- |
+    | PixToPix | True/False        | Попиксельное сравнение двух изображений         |
+    | MSE      | [0; ∞)            | Среднеквадратичная ошибка между изображениями   |
+    | NRMSE    | [0, 1]            | Нормализованная среднеквадратическая ошибка     |
+    | SSIM     | [-1;1]            | Структурное сходство изображений                |
+    | PSNR     | (0; ∞)            | Отношение максимального значения сигнала к шуму |
+    | MAE      | [0; ∞)            | Средняя абсолютная ошибка между изображениями   |
+    | NMI      | [1;2]             | Нормализованный показатель взаимной информации  |
+
+    Методы:
+    -------
+    - pix2pix(self, resize_images: bool = True, to_csv: bool = False, echo: bool = False) -> list[bool]
+      Попиксельное сравнение двух изображений.
+    - mse(self, resize_images: bool = True, to_csv: bool = False, echo: bool = False) -> list[float]
+      Вычисляет среднеквадратичную ошибку между изображениями.
+    - nrmse(self, resize_images: bool = True, to_csv: bool = False, echo: bool = False) -> list[float]
+      Вычисляет нормализованную среднеквадратическую ошибку.
+    - ssim(self, resize_images: bool = True, to_csv: bool = False, echo: bool = False) -> list[float]
+      Вычисляет структурное сходство изображений.
+    - psnr(self, resize_images: bool = True, to_csv: bool = False, echo: bool = False) -> list[float]
+      Вычисляет отношение максимального значения сигнала к шуму.
+    - mae(self, resize_images: bool = True, to_csv: bool = False, echo: bool = False) -> list[float]
+      Вычисляет среднюю абсолютную ошибку между изображениями.
+    - nmi(self, resize_images: bool = True, to_csv: bool = False, echo: bool = False) -> list[float]
+      Вычисляет нормализованный показатель взаимной информации.
     """
 
     def __init__(self, Dataset1: Dataset, Dataset2: Dataset, results_path: str = ""):
@@ -49,6 +78,33 @@ class Metrics(object):
         self.Dataset2 = Dataset2
 
         self.results_path = results_path
+
+        self.ranges = {
+            "mae": {
+                "duplicate": self.RangeMask(None, 70),  # 60 -> 70
+                "similar": self.RangeMask(70, 119),  # 60 -> 70, 130 -> 119
+            },
+            "mse": {
+                "duplicate": self.RangeMask(None, 60),
+                "similar": self.RangeMask(60, 105),  # 110 -> 105
+            },
+            "nrmse": {
+                "duplicate": self.RangeMask(None, 0.2),
+                "similar": self.RangeMask(0.2, 0.56),  # 0.6 -> 0.56
+            },
+            "ssim": {
+                "duplicate": self.RangeMask(0.6, 1),
+                "similar": self.RangeMask(0.27, 0.6),
+            },
+            "psnr": {
+                "duplicate": self.RangeMask(25, None),
+                "similar": self.RangeMask(12, 25),
+            },
+            "nmi": {
+                "duplicate": self.RangeMask(1.3, 2),
+                "similar": self.RangeMask(1.007, 1.3),
+            },
+        }
 
     def pix2pix(
         self,
@@ -130,7 +186,6 @@ class Metrics(object):
             for first_image in self.Dataset1.images:
 
                 row = []
-                futures = []
 
                 for second_image in self.Dataset2.images:
                     if echo:
@@ -142,28 +197,21 @@ class Metrics(object):
 
                     # Субмитим задачу в ThreadPoolExecutor
                     if resize_images:
-                        future = executor.submit(
-                            metric_function,
+                        value = metric_function(
                             first_image.read_and_resize(),
                             second_image.read_and_resize(),
                         )
                     else:
-                        future = executor.submit(
-                            metric_function,
-                            first_image.read(),
-                            second_image.read(),
+                        value = metric_function(
+                            first_image._read_flatten(),
+                            second_image._read_flatten(),
                         )
 
-                    # Добавляем объект Future в список
-                    futures.append(future)
-
-                # Получаем результаты выполнения задач и добавляем в строку
-                for future in futures:
-                    row.append(future.result())
+                    row.append(value)
 
                 result_matrix.append(row)
 
-        if to_csv == True:
+        if to_csv:
             self.save(metric_function.__name__, result_matrix)
 
         return result_matrix
@@ -195,6 +243,22 @@ class Metrics(object):
         df = pd.DataFrame(metric_values, columns=columns, index=index)
         df.to_csv(rf"{self.results_path}/{filename}.csv")
 
+    class RangeMask:
+        def __init__(self, lower_bound=None, upper_bound=None):
+            self.lower_bound = lower_bound
+            self.upper_bound = upper_bound
+
+        def __call__(self, value):
+            if (type(value) == bool) and (value == True):
+                return True
+
+            if ((self.lower_bound != None) and (value <= self.lower_bound)) or (
+                (self.upper_bound != None) and (value >= self.upper_bound)
+            ):
+                return False
+
+            return True
+
 
 # ==================================================================================================================================
 
@@ -202,35 +266,32 @@ if __name__ == "__main__":
     dataset1 = Dataset("datasets/cows")
     dataset2 = Dataset("datasets/cows")
 
-    dataset1 = Dataset("datasets/metrics_analyze/1")
-    dataset2 = Dataset("datasets/metrics_analyze/2")
-
-    metrics = Metrics(dataset1, dataset2, "results/metrics")
+    metrics = Metrics(dataset1, dataset2)
 
     color_print("log", "log", "Pixel 2 Pixel:")
-    pix2pix_result = get_time(metrics.pix2pix)(echo=True, to_csv=True)
+    pix2pix_result = metrics.pix2pix(echo=True)
     metrics.show(pix2pix_result)
 
     color_print("log", "log", "MAE:")
-    mae_result = get_time(metrics.mae)(echo=True, to_csv=True)
+    mae_result = metrics.mae(echo=True)
     metrics.show(mae_result)
 
     color_print("log", "log", "MSE:")
-    mse_result = get_time(metrics.mse)(echo=True, to_csv=True)
+    mse_result = metrics.mse(echo=True)
     metrics.show(mse_result)
 
     color_print("log", "log", "NRMSE:")
-    nrmse_result = get_time(metrics.nrmse)(echo=True, to_csv=True)
+    nrmse_result = metrics.nrmse(echo=True)
     metrics.show(nrmse_result)
 
     color_print("log", "log", "SSIM:")
-    ssim_result = get_time(metrics.ssim)(echo=True, to_csv=True)
+    ssim_result = metrics.ssim(echo=True)
     metrics.show(ssim_result)
 
     color_print("log", "log", "PSNR:")
-    psnr_result = get_time(metrics.psnr)(echo=True, to_csv=True)
+    psnr_result = metrics.psnr(echo=True)
     metrics.show(psnr_result)
 
     color_print("log", "log", "NMI:")
-    nmi_result = get_time(metrics.nmi)(echo=True, to_csv=True)
+    nmi_result = metrics.nmi(echo=True)
     metrics.show(nmi_result)
