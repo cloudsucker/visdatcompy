@@ -8,7 +8,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="visdatcompy",
-    version="0.3.2",
+    version="0.7.3",
     author="cls, Reape4er, Adg1r",
     author_email="ferjenkill@gmail.com",
     description="Библиотека для сравнения визуальных наборов данных",
