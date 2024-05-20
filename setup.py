@@ -14,7 +14,7 @@ setup(
     description="Библиотека для сравнения визуальных наборов данных",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/maxfraid/visdatcompy",
+    url="https://github.com/cloudysock/visdatcompy",
     packages=find_packages(),
     install_requires=requirements,
 )

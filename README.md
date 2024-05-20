@@ -1,6 +1,6 @@
 # Библиотека для сравнения визуальных наборов данных
 
-![visdatcompy](static/logo.png)
+![visdatcompy](https://github.com/cloudysock/visdatcompy/blob/main/static/logo.png)
 
 ## 📄 Описание
 

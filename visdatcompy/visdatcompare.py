@@ -304,20 +304,15 @@ if __name__ == "__main__":
     dataset1 = Dataset("datasets/drone")
     dataset2 = Dataset("datasets/drone_duplicates")
 
-    # Создаём объект класса DatasetsCompare поиска дублей и схожестей
+    # Создаём объект класса VisDatCompare поиска дублей и схожестей
     compy = VisDatCompare(dataset1, dataset2)
 
-    # Ищем дубликаты изображений по метаданным:
-    compy.duplicates_finder.find_exif_duplicates()
+    # Ищем дубликаты изображений методом MSE:
+    compy.duplicates_finder.find_metrics_duplicates("mse")
     # Удаляем дубликаты
     compy.duplicates_finder.clear_duplicates()
 
-    # Ищем схожие изображения по метрике MSE:
-    compy.similars_finder.find_metrics_similars("mse")
-
-    print(compy.similars_finder.metrics_similars)
-
-    # Удаляем схожие изображения из второго датасета
+    # Ищем схожие изображения с помощью SIFT:
+    compy.similars_finder.find_features_similars("sift")
+    # Удаляем схожие изображения
     compy.similars_finder.clear_similars()
-
-    compy.dataset2.filenames

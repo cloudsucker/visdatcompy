@@ -1,6 +1,10 @@
 .venv/
+build/
+dist/
+MANIFEST.in
 visdatcompy/__pycache__/
-visdatcompy.egg-info/
+*.egg-info
+*.pyc
 research/__pycache__/
 research/_metrics_analyse.ipynb
 static/logo.psd
