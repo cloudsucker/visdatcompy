@@ -8,7 +8,8 @@ with open("requirements.txt") as f:
 
 setup(
     name="visdatcompy",
-    version="0.7.3",
+    version="0.8.1",
+    python_requires=">=3.12",
     author="cls, Reape4er, Adg1r",
     author_email="ferjenkill@gmail.com",
     description="Библиотека для сравнения визуальных наборов данных",
