@@ -207,16 +207,11 @@ class Dataset(object):
 
     def delete_image(self, image: Image):
         if image.filename in self.filenames:
-            print("\nDeleting image: ", image.filename)
-            print("\nДо удаления: ", self.filenames)
-
             image_index = self.filenames.index(image.filename)
 
             del self.images[image_index]
             del self.filenames[image_index]
             self.image_count -= 1
-
-            print("\nПосле удаления: ", self.filenames)
 
     def get_exif_data(self) -> list[str]:
         """
