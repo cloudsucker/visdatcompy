@@ -114,7 +114,7 @@ metrics.show(mae_result)
 ```
 
 <p align="center">
-    <img src="./static/screenshots/metric_result.png" alt="MAE Result" title="MAE Result">
+    <img src="https://github.com/cloudysock/visdatcompy/blob/main/static/screenshots/metric_result.png" alt="MAE Result" title="MAE Result">
 </p>
 
 ### 3. **Сравнение на основе Дескрипторов** 🎯
@@ -124,11 +124,11 @@ metrics.show(mae_result)
 **Метод SIFT** _(Scale-Invariant feature transform — масштабно-инвариантная трансформация признаков)_ содержит детекторы для определения интересующих нас характерных точек на изображении и отбрасывании низкоконтрастных ключевых точек. Выходной величиной является представление соседней с характерной точкой области в виде вектора дескрипторов.
 
 <p align="center">
-    <img src="./static/screenshots/sift_keypoints.png">
+    <img src="https://github.com/cloudysock/visdatcompy/blob/main/static/screenshots/sift_keypoints.png">
 </p>
 
 <p align="center">
-    <img src="./static/screenshots/sift.png">
+    <img src="https://github.com/cloudysock/visdatcompy/blob/main/static/screenshots/sift.png">
 </p>
 
 **Пример работы с SIFT:**
