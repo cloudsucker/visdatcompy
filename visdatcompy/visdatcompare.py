@@ -142,11 +142,11 @@ class VisDatCompare(object):
         def clear_duplicates(self):
             for duplicates_list in self.metrics_duplicates.values():
                 for duplicate in duplicates_list:
-                    dataset2.delete_image(duplicate)
+                    self.dataset2.delete_image(duplicate)
 
             for duplicates_list in self.exif_duplicates.values():
                 for duplicate in duplicates_list:
-                    dataset2.delete_image(duplicate)
+                    self.dataset2.delete_image(duplicate)
 
         def _exif_equal(self, exif1, exif2):
             ignore_columns = {"Filename", "FileExtension", "DateTimeDigitized"}
@@ -289,14 +289,14 @@ class VisDatCompare(object):
 
         def clear_similars(self):
             for duplicate in self.hash_similars.values():
-                dataset2.delete_image(duplicate)
+                self.dataset2.delete_image(duplicate)
 
             for duplicate in self.features_similars.values():
-                dataset2.delete_image(duplicate)
+                self.dataset2.delete_image(duplicate)
 
             for duplicate_list in self.metrics_similars.values():
                 for duplicate in duplicate_list:
-                    dataset2.delete_image(duplicate)
+                    self.dataset2.delete_image(duplicate)
 
 
 if __name__ == "__main__":
