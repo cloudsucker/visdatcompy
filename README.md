@@ -1,6 +1,10 @@
 # Библиотека для сравнения визуальных наборов данных
 
-![visdatcompy](https://raw.githubusercontent.com/cloudysock/visdatcompy/main/static/logo.png)
+![visdatcompy](https://raw.githubusercontent.com/cloudsucker/visdatcompy/main/static/logo.png)
+
+> **<p align="center">⚠ WARNING ⚠</p>**
+>
+> <p align="center">Данный проект устарел, его работоспособность не гарантирована в связи с прекращением его поддержки.</p>
 
 ## 📄 Описание
 
@@ -114,7 +118,7 @@ metrics.show(mae_result)
 ```
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/cloudysock/visdatcompy/main/static/screenshots/metric_result.png" alt="MAE Result" title="MAE Result">
+    <img src="https://raw.githubusercontent.com/cloudsucker/visdatcompy/main/static/screenshots/metric_result.png" alt="MAE Result" title="MAE Result">
 </p>
 
 ### 3. **Сравнение на основе Дескрипторов** 🎯
@@ -124,11 +128,11 @@ metrics.show(mae_result)
 **Метод SIFT** _(Scale-Invariant feature transform — масштабно-инвариантная трансформация признаков)_ содержит детекторы для определения интересующих нас характерных точек на изображении и отбрасывании низкоконтрастных ключевых точек. Выходной величиной является представление соседней с характерной точкой области в виде вектора дескрипторов.
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/cloudysock/visdatcompy/main/static/screenshots/sift_keypoints.png">
+    <img src="https://raw.githubusercontent.com/cloudsucker/visdatcompy/main/static/screenshots/sift_keypoints.png">
 </p>
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/cloudysock/visdatcompy/main/static/screenshots/sift.png">
+    <img src="https://raw.githubusercontent.com/cloudsucker/visdatcompy/main/static/screenshots/sift.png">
 </p>
 
 **Пример работы с SIFT:**
@@ -231,7 +235,7 @@ compy.similars_finder.clear_similars()
 Переходим в нужную директорию и клонируем репозиторий:
 
 ```powershell
-> git clone https://github.com/maxfraid/visdatcompy.git
+> git clone https://github.com/cloudsucker/visdatcompy.git
 ```
 
 #### 2. Настройка виртуального окружения 📦
