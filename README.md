@@ -1,4 +1,4 @@
-# Библиотека для сравнения визуальных наборов данных
+# <p align="center">Библиотека для сравнения визуальных наборов данных</p>
 
 ![visdatcompy](https://raw.githubusercontent.com/cloudsucker/visdatcompy/main/static/logo.png)
 
